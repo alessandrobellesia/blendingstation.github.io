@@ -402,7 +402,7 @@
 
   <footer>
     <p style="font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3)">
-      2026 TankLabel - Version 5.27
+      2026 TankLabel - Version 5.28
     </p>
   </footer>
 
@@ -675,6 +675,7 @@
       if (aL) aL.style.opacity = idx === 1 ? "1" : "0.15";
       if (aR) aR.style.opacity = idx === 0 ? "1" : "0.15";
       updatePreview();
+      enforceDivesoftHeight();
     }
 
     function calculateMOD(o2) {
@@ -745,10 +746,22 @@
       input.dispatchEvent(new Event("input", { bubbles: true }));
     }
 
+    function enforceDivesoftHeight() {
+      if (currentSkin !== 1) return;
+      const wMm = num("labelWidth"), hMm = num("labelHeight");
+      if (wMm > hMm) {
+        DOM.inputs["labelHeight"].value = wMm;
+        updatePreview();
+        saveSettings();
+      }
+    }
+
     function setupEventListeners() {
       Object.values(DOM.inputs).forEach((input) => {
         input.addEventListener("input", () => { updatePreview(); saveSettings(); });
       });
+      if (DOM.inputs.labelWidth) DOM.inputs.labelWidth.addEventListener("blur", enforceDivesoftHeight);
+      if (DOM.inputs.labelHeight) DOM.inputs.labelHeight.addEventListener("blur", enforceDivesoftHeight);
       window.addEventListener("resize", updatePreview);
 
       document.getElementById("diverName").addEventListener("input", (e) => {
@@ -829,12 +842,14 @@
       document.getElementById("skinDivesoft").style.display = currentSkin === 1 ? "" : "none";
       refreshDomLabelContent();
 
-      // Vincolo verticale per skin Divesoft
+      // Vincolo verticale per skin Divesoft: mostra solo l'avviso mentre si scrive
+      // (senza correggere il valore ad ogni tasto, altrimenti scrivere "40" partendo
+      // da "30" viene bloccato subito dopo il "4" perché 4 < 30). La correzione vera
+      // e propria scatta solo al termine della digitazione (blur), vedi enforceDivesoftHeight().
       const note = document.getElementById("divesoftOrientationNote");
       if (currentSkin === 1) {
         const wMm = num("labelWidth"), hMm = num("labelHeight");
-        if (wMm > hMm) { DOM.inputs["labelHeight"].value = wMm; if (note) note.style.display = ""; }
-        else { if (note) note.style.display = "none"; }
+        if (note) note.style.display = wMm > hMm ? "" : "none";
       } else { if (note) note.style.display = "none"; }
 
       // Dimensioni
