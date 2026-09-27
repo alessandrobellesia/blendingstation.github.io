@@ -304,6 +304,10 @@
             <p id="divesoftOrientationNote" style="display:none; margin:6px 0 0 0; font-size:0.72em; color:#f59e0b; font-weight:600;">
               <i class="fas fa-info-circle"></i> La skin Divesoft è ottimizzata per etichette verticali (altezza ≥ larghezza).
             </p>
+            <label style="display: flex; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer;">
+              <input type="checkbox" id="rotateToggle" onchange="toggleRotate(this.checked)" style="width: 18px; height: 18px; accent-color: #2F6FED; cursor: pointer;" />
+              <span style="font-size: 13.5px; color: var(--text-secondary, #666);"><i class="fas fa-rotate"></i> Ruota etichetta 90° in stampa/PDF</span>
+            </label>
           </div>
 
           <div class="form-group">
@@ -435,7 +439,7 @@
 
   <footer>
     <p style="font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3)">
-      2026 TankLabel - Version 5.30
+      2026 TankLabel - Version 5.31
     </p>
   </footer>
 
@@ -989,9 +993,22 @@
       loadSettings();
       initHeliumToggle();
       initPpo2Mode();
+      initRotateToggle();
       switchSkin(currentSkin);
       setupEventListeners();
       updatePreview();
+    }
+
+    // Rotazione 90° manuale in stampa/PDF: indipendente dalla skin, scelta dall'utente
+    // (sostituisce la vecchia logica automatica legata a currentSkin === 1)
+    function toggleRotate(checked) {
+      localStorage.setItem("labelRotate90", checked ? "1" : "0");
+    }
+
+    function initRotateToggle() {
+      const saved = localStorage.getItem("labelRotate90") === "1";
+      const el = document.getElementById("rotateToggle");
+      if (el) el.checked = saved;
     }
 
     function fitDivesoftText(labelWpx, labelHpx) {
