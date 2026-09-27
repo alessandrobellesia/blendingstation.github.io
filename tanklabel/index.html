@@ -171,14 +171,47 @@
         <i class="fas fa-sliders-h"></i> Dati Miscela
       </h2>
 
+      <style>
+        .gas-pill-group { display: flex; gap: 8px; }
+        .gas-pill {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          height: 52px;
+          padding: 0 6px;
+          border-radius: 999px;
+          border: 1.5px solid #E4E7EC;
+          background: #F5F6F8;
+          font-family: inherit;
+          cursor: pointer;
+          transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .gas-pill .gp-label { font-size: 13.5px; font-weight: 700; color: #12181F; }
+        .gas-pill .gp-value { font-size: 12px; font-weight: 600; color: #98A2B3; }
+        .gas-pill.active {
+          background: #2F6FED;
+          border-color: #2F6FED;
+          box-shadow: 0 4px 10px rgba(47, 111, 237, 0.30);
+        }
+        .gas-pill.active .gp-label { color: #FFFFFF; }
+        .gas-pill.active .gp-value { color: rgba(255, 255, 255, 0.8); }
+      </style>
       <div class="input-grid">
         <!-- Tipo di Gas: determina il PPO2 max usato per il calcolo del MOD -->
         <div class="form-group">
           <label><i class="fas fa-gauge-high"></i> Tipo di Gas</label>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" id="btnGasFondo" class="ppo2-btn active" onclick="setPpo2Mode(1.4)">Gas di Fondo (1.4)</button>
-            <button type="button" id="btnGasDeco" class="ppo2-btn" onclick="setPpo2Mode(1.6)">Gas Deco (1.6)</button>
-            <button type="button" id="btnGasCustom" class="ppo2-btn" onclick="setPpo2Mode('custom')">Personalizzato</button>
+          <div class="gas-pill-group">
+            <button type="button" id="btnGasFondo" class="gas-pill active" onclick="setPpo2Mode(1.4)">
+              <span class="gp-label">Fondo</span><span class="gp-value">1.4</span>
+            </button>
+            <button type="button" id="btnGasDeco" class="gas-pill" onclick="setPpo2Mode(1.6)">
+              <span class="gp-label">Deco</span><span class="gp-value">1.6</span>
+            </button>
+            <button type="button" id="btnGasCustom" class="gas-pill" onclick="setPpo2Mode('custom')">
+              <span class="gp-label">Custom</span><span class="gp-value">--</span>
+            </button>
           </div>
           <div id="ppo2CustomRow" style="display: none; align-items: center; gap: 8px; margin-top: 8px;">
             <span style="font-size: 13px; color: var(--text-secondary, #666); white-space: nowrap;">PPO&#8322; max:</span>
@@ -402,7 +435,7 @@
 
   <footer>
     <p style="font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3)">
-      2026 TankLabel - Version 5.29
+      2026 TankLabel - Version 5.30
     </p>
   </footer>
 
