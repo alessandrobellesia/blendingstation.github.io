@@ -38,13 +38,30 @@ async function generatePdf() {
       useCORS: true,
       backgroundColor: "#ffffff",
     });
-    const imgData = canvas.toDataURL("image/png");
-
     const { jsPDF } = window.jspdf;
     const widthMm = parseFloat(DOM.inputs.labelWidth.value);
     const heightMm = parseFloat(DOM.inputs.labelHeight.value);
+    const rotate = localStorage.getItem("labelRotate90") === "1"; // interruttore manuale "Ruota etichetta 90°"
 
-    // Pagina = esattamente le dimensioni dell'etichetta, nessun margine,
+    let imgData, pageW, pageH;
+    if (rotate) {
+      const rot = document.createElement("canvas");
+      rot.width = canvas.height;
+      rot.height = canvas.width;
+      const rctx = rot.getContext("2d");
+      rctx.translate(rot.width / 2, rot.height / 2);
+      rctx.rotate((90 * Math.PI) / 180);
+      rctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+      imgData = rot.toDataURL("image/png");
+      pageW = heightMm;
+      pageH = widthMm;
+    } else {
+      imgData = canvas.toDataURL("image/png");
+      pageW = widthMm;
+      pageH = heightMm;
+    }
+
+    // Pagina = esattamente le dimensioni dell'etichetta (ruotata o no), nessun margine,
     // orientamento sempre "p": passando un array "format" a jsPDF con
     // orientation "l" (o "p" con altezza<larghezza) jsPDF può scambiare
     // internamente width/height, disallineando la pagina dall'immagine e
@@ -53,10 +70,10 @@ async function generatePdf() {
     const doc = new jsPDF({
       orientation: "p",
       unit: "mm",
-      format: [widthMm, heightMm],
+      format: [pageW, pageH],
     });
 
-    doc.addImage(imgData, "PNG", 0, 0, widthMm, heightMm);
+    doc.addImage(imgData, "PNG", 0, 0, pageW, pageH);
     doc.save(`TankLabel_Label_${Date.now()}.pdf`);
   } catch (e) {
     console.error("Errore PDF:", e);
@@ -137,7 +154,7 @@ async function printLabel() {
   const widthMm = parseFloat(DOM.inputs.labelWidth.value) || 50;
   const heightMm = parseFloat(DOM.inputs.labelHeight.value) || 50;
   const basePx = parseFloat(DOM.inputs.basePxSize.value) || 16;
-  const rotate = (parseInt(localStorage.getItem("currentSkin") || "0")) === 1; // Divesoft: verticale a schermo, ruotata in stampa per sfruttare tutta la larghezza del rotolo
+  const rotate = localStorage.getItem("labelRotate90") === "1"; // scelta manuale dell'utente (interruttore "Ruota etichetta 90°"), indipendente dalla skin
 
   const printArea = document.getElementById("print-area");
   const clone = DOM.labelContent.cloneNode(true);
@@ -204,7 +221,7 @@ async function printLabelWiFi() {
     const { jsPDF } = window.jspdf;
     const widthMm = parseFloat(DOM.inputs.labelWidth.value);
     const heightMm = parseFloat(DOM.inputs.labelHeight.value);
-    const rotate = (parseInt(localStorage.getItem("currentSkin") || "0")) === 1; // Divesoft: ruota 90° così il lato lungo (altezza originale) combacia con la larghezza del rotolo
+    const rotate = localStorage.getItem("labelRotate90") === "1"; // scelta manuale dell'utente (interruttore "Ruota etichetta 90°"), indipendente dalla skin
 
     let imgData, pageW, pageH;
     if (rotate) {
