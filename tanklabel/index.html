@@ -439,7 +439,7 @@
 
   <footer>
     <p style="font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3)">
-      2026 TankLabel - Version 5.31
+      2026 TankLabel - Version 5.32
     </p>
   </footer>
 
@@ -899,9 +899,15 @@
       const finalScale = 5 * scaleFactor;
       const labelWpx = widthMm * finalScale;
 
+      // Anteprima ruotata: mostra il contenuto come uscirà fisicamente dalla stampante
+      // quando l'interruttore "Ruota etichetta 90°" è attivo (stesso comportamento di PDF/stampa)
+      const rotatePreview = document.getElementById("rotateToggle")?.checked;
+
       [document.getElementById("skinClassic"), document.getElementById("skinDivesoft")].forEach(el => {
         el.style.width  = `${labelWpx}px`;
         el.style.height = `${heightMm * finalScale}px`;
+        el.style.transform = rotatePreview ? "rotate(90deg)" : "";
+        el.style.transformOrigin = "center center";
         el.style.setProperty("--base-px-size", `${basePx * scaleFactor}px`);
       });
 
@@ -1003,6 +1009,7 @@
     // (sostituisce la vecchia logica automatica legata a currentSkin === 1)
     function toggleRotate(checked) {
       localStorage.setItem("labelRotate90", checked ? "1" : "0");
+      updatePreview();
     }
 
     function initRotateToggle() {
