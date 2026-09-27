@@ -402,7 +402,7 @@
 
   <footer>
     <p style="font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3)">
-      2026 TankLabel - Version 5.28
+      2026 TankLabel - Version 5.29
     </p>
   </footer>
 
@@ -748,7 +748,8 @@
 
     function enforceDivesoftHeight() {
       if (currentSkin !== 1) return;
-      const wMm = num("labelWidth"), hMm = num("labelHeight");
+      const wMm = parseFloat(DOM.inputs.labelWidth.value) || 0;
+      const hMm = parseFloat(DOM.inputs.labelHeight.value) || 0;
       if (wMm > hMm) {
         DOM.inputs["labelHeight"].value = wMm;
         updatePreview();
