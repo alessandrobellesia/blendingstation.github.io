@@ -1078,7 +1078,7 @@
 
         <div style="border-top:1px solid var(--border-ui); padding-top:14px; text-align:center; font-size:0.7em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text);">
             Copyright © 2026 <b>Blending Station</b><br>
-            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.87</b><br>
+            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.88</b><br>
             <span style="font-size:0.9em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569; margin-top:4px; display:block;"><span id="lg_createdby_m">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
@@ -1338,7 +1338,7 @@
             <span id="lg_disclaimer_d">Nota Legale: Questo strumento è destinato esclusivamente a gas blender certificati. Le miscele di gas devono essere sempre analizzate e validate prima dell'uso. Blending Station declina ogni responsabilità per uso improprio o errori di ricarica.</span>
         </p>
         <div class="footer-copyright">
-            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.87</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
+            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.88</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
 </footer>
@@ -2901,7 +2901,7 @@
   :root{ --ink:#1c2b2e; --line:#2c4a4f; --muted:#1c2b2e; --accent:#8a6b3f; }
   *{ box-sizing:border-box; }
   body{ font-family:'Georgia','Times New Roman',serif; color:var(--ink); background:#fff; margin:0; }
-  .sheet{ width:148mm; min-height:210mm; margin:0 auto; padding:12mm 13mm; }
+  .sheet{ width:210mm; min-height:297mm; margin:0 auto; padding:17mm 19mm; }
   header{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid var(--ink); padding-bottom:10px; margin-bottom:14px; }
   header h1{ font-size:17px; margin:0; letter-spacing:0.3px; }
   header .sub{ font-family:Arial,sans-serif; font-size:9px; color:var(--muted); margin-top:3px; }
@@ -2994,8 +2994,8 @@
         iframe.style.position = 'fixed';
         iframe.style.top = '0';
         iframe.style.left = '-10000px';
-        iframe.style.width = '560px';
-        iframe.style.height = '800px';
+        iframe.style.width = '800px';
+        iframe.style.height = '1130px';
         iframe.style.border = 'none';
         document.body.appendChild(iframe);
 
@@ -3003,8 +3003,8 @@
             const sheetEl = iframe.contentDocument.querySelector('.sheet');
             html2canvas(sheetEl, { scale: 2.5, backgroundColor: '#ffffff', useCORS: true }).then(function(canvas) {
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                const pdf = new jspdf.jsPDF({ unit: 'mm', format: 'a5' });
-                pdf.addImage(imgData, 'JPEG', 0, 0, 148, 210);
+                const pdf = new jspdf.jsPDF({ unit: 'mm', format: 'a4' });
+                pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
                 document.body.removeChild(iframe);
 
                 const fileName = 'sequenza-ricarica-' + dataOggi.replace(/\//g, '-') + '.pdf';
