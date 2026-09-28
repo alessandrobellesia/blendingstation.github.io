@@ -1078,7 +1078,7 @@
 
         <div style="border-top:1px solid var(--border-ui); padding-top:14px; text-align:center; font-size:0.7em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text);">
             Copyright © 2026 <b>Blending Station</b><br>
-            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.82</b><br>
+            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.84</b><br>
             <span style="font-size:0.9em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569; margin-top:4px; display:block;"><span id="lg_createdby_m">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
@@ -1287,24 +1287,26 @@
                 <div class="cost-row"><span data-i18n="ui_cost_helium">ELIO</span><span class="gas-val-alligned" id="litriHe">0 L</span><span class="euro" id="costoHe">€ 0.00</span></div>
                 <div class="cost-row"><span data-i18n="ui_cost_oxygen">OSSIGENO</span><span class="gas-val-alligned" id="litriO2">0 L</span><span class="euro" id="costoO2">€ 0.00</span></div>
                 <div class="cost-row"><span data-i18n="ui_cost_air">ARIA</span><span class="gas-val-alligned" id="litriAria">0 L</span><span class="euro" id="costoAir">€ 0.00</span></div>
-                <button class="btn-ascii" onclick="generateReceipt()"><i class="fa-solid fa-receipt"></i> <span id="btn_report">Genera Report</span></button>
-                <button onclick="generateRegistroMiscelazione()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:var(--color-he); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.78em; text-transform:uppercase; letter-spacing:0.04em; margin-top:8px;">
+                <div class="card-title" style="color:var(--accent); margin-top:18px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);"><i class="fa-solid fa-clipboard-list"></i> <span id="lbl_summary">RIEPILOGO</span></div>
+                <div class="cost-row"><span data-i18n="ui_total_gas_label">Totale Gas</span><span class="gas-val-alligned" id="sumGasOnly">€ 0.00</span></div>
+                <div class="cost-row"><span data-i18n="ui_fixed_costs_label">Costi Fissi</span><span class="gas-val-alligned" id="sumFixed">€ 5.00</span></div>
+                <div class="total-container" style="margin-top:6px;">
+                    <div class="total-highlight-box"><span style="color:#fff; font-weight:800;" data-i18n="ui_total_refill_label">TOTALE RICARICA</span><span class="total-amount" id="resGrandTotal">€ 5.00</span></div>
+                    <span id="price_date_label" class="price-date-display" data-i18n="ui_price_updated_dash">Prezzi aggiornati al: --/--/----</span>
+                </div>
+            </div>
+            <div class="footer-card" style="display:flex; flex-direction:column;">
+                <div class="card-title" style="color:var(--accent);"><i class="fa-solid fa-file-lines"></i> <span id="lbl_documents">DOCUMENTI</span></div>
+                <button class="btn-ascii" onclick="generateReceipt()" style="margin-top:0;"><i class="fa-solid fa-receipt"></i> <span id="btn_report">Genera Report</span></button>
+                <button onclick="generateRegistroMiscelazione()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:var(--color-he); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.78em; text-transform:uppercase; letter-spacing:0.04em; margin-top:12px;">
                     <i class="fa-solid fa-file-signature"></i> <span>Registro Miscelazione</span>
+                </button>
+                <button onclick="generateSequenzaRicarica()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:#6d28d9; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.78em; text-transform:uppercase; letter-spacing:0.04em; margin-top:8px;">
+                    <i class="fa-solid fa-list-ol"></i> <span>Sequenza di Ricarica</span>
                 </button>
                 <button onclick="showHistoryModal()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:#475569; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.78em; text-transform:uppercase; letter-spacing:0.04em; margin-top:8px;">
                     <i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="ui_view_history_btn">Visualizza Storico Ricariche</span>
                 </button>
-            </div>
-            <div class="footer-card" style="display:flex; flex-direction:column;">
-                <div class="card-title" style="color:var(--accent);"><i class="fa-solid fa-clipboard-list"></i> <span id="lbl_summary">RIEPILOGO</span></div>
-                <div class="cost-row"><span data-i18n="ui_total_gas_label">Totale Gas</span><span class="gas-val-alligned" id="sumGasOnly">€ 0.00</span></div>
-                <div class="cost-row"><span data-i18n="ui_fixed_costs_label">Costi Fissi</span><span class="gas-val-alligned" id="sumFixed">€ 5.00</span></div>
-                <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
-                    <div class="total-container">
-                        <div class="total-highlight-box"><span style="color:#fff; font-weight:800;" data-i18n="ui_total_refill_label">TOTALE RICARICA</span><span class="total-amount" id="resGrandTotal">€ 5.00</span></div>
-                        <span id="price_date_label" class="price-date-display" data-i18n="ui_price_updated_dash">Prezzi aggiornati al: --/--/----</span>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -1336,7 +1338,7 @@
             <span id="lg_disclaimer_d">Nota Legale: Questo strumento è destinato esclusivamente a gas blender certificati. Le miscele di gas devono essere sempre analizzate e validate prima dell'uso. Blending Station declina ogni responsabilità per uso improprio o errori di ricarica.</span>
         </p>
         <div class="footer-copyright">
-            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.82</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
+            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.84</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
 </footer>
@@ -2823,6 +2825,198 @@
         } catch(err) { alert(curT().al_error_prefix + ' ' + err.message); }
     }
 
+    // ── SEQUENZA DI RICARICA (foglio operativo A5, una bombola alla volta) ──
+    // Riusa la sequenza già calcolata da calc() in window._fsSteps (la stessa
+    // usata dalla Modalità Operativa a schermo intero), solo stampata su carta.
+    // Documento preparatorio: richiede solo il nome cliente, non il blender.
+    function generateSequenzaRicarica() {
+        try {
+        const cName = (document.getElementById('customerName').value || '').trim();
+        if (!cName) {
+            window.namesModalPendingAction = 'sequenza';
+            var modal = document.getElementById('namesModal');
+            var bField = document.getElementById('modalBlenderField');
+            var dField = document.getElementById('modalDiverField');
+            var dInput = document.getElementById('modalDiverInput');
+            bField.style.display = 'none';
+            dField.style.display = 'block';
+            dInput.value = '';
+            modal.classList.add('open');
+            setTimeout(function() { dInput.focus(); }, 100);
+            return;
+        }
+
+        if (!window._fsSteps || window._fsSteps.length === 0) {
+            alert('Calcola prima la miscelazione (premi "Calcola") per generare la sequenza di ricarica.');
+            return;
+        }
+
+        const cylSel = document.getElementById('cylSelect');
+        const cylLabel = (() => {
+            if (!cylSel || cylSel.selectedIndex < 0) return '';
+            const opt = cylSel.options[cylSel.selectedIndex];
+            if (!opt) return '';
+            const biboVal = opt.getAttribute('data-i18n-bibo');
+            if (biboVal) return 'Bibo ' + biboVal;
+            if (cylSel.value === 'altro') {
+                const vol = document.getElementById('cylVol') ? document.getElementById('cylVol').value : '';
+                return vol ? vol + ' L (custom)' : 'Custom';
+            }
+            return opt.text.trim();
+        })();
+
+        const oS = document.getElementById('o2S').value, hS = document.getElementById('heS').value;
+        const nS = (100 - parseFloat(oS) - parseFloat(hS)).toFixed(1);
+        const pSVal = document.getElementById('pS').value;
+        const oE = document.getElementById('o2E').value, hE = document.getElementById('heE').value;
+        const nE = (100 - parseFloat(oE) - parseFloat(hE)).toFixed(1);
+        const pEVal = document.getElementById('pE').value;
+        const dataOggi = new Date().toLocaleDateString('it-IT');
+        const shopNameVal = (document.getElementById('shopName') ? document.getElementById('shopName').value : '').trim();
+
+        const STEP_LABELS = { DRAIN: 'SCARICA', O2: 'AGGIUNGI', HE: 'AGGIUNGI', AIR: 'AGGIUNGI' };
+        const stepsHtml = window._fsSteps.map(function(s, i) {
+            const azione = STEP_LABELS[s.type] || 'AGGIUNGI';
+            const gasLabel = s.type === 'DRAIN' ? 'GAS' : s.gas;
+            const rowClass = s.type === 'DRAIN' ? ' drain' : '';
+            return `<div class="seq-row${rowClass}">
+              <div class="seq-num">${i + 1}</div>
+              <div class="seq-what"><span class="seq-action">${azione}</span> <span class="seq-gas">${gasLabel}</span></div>
+              <div class="seq-qty">${s.qty.toFixed(1)}<span class="seq-unit">bar</span></div>
+              <div class="seq-to">fino a<br><strong>${s.fino.toFixed(1)} bar</strong></div>
+              <div class="seq-mix">${s.mix.o.toFixed(1)}/${s.mix.h.toFixed(1)}/${s.mix.n.toFixed(1)}</div>
+            </div>`;
+        }).join('');
+
+        const html = `<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
+<title>Sequenza di Ricarica</title>
+<style>
+  :root{ --ink:#1c2b2e; --line:#2c4a4f; --muted:#1c2b2e; --accent:#6d28d9; }
+  *{ box-sizing:border-box; }
+  body{ font-family:'Georgia','Times New Roman',serif; color:var(--ink); background:#fff; margin:0; }
+  .sheet{ width:148mm; min-height:210mm; margin:0 auto; padding:12mm 13mm; }
+  header{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid var(--ink); padding-bottom:10px; margin-bottom:14px; }
+  header h1{ font-size:17px; margin:0; letter-spacing:0.3px; }
+  header .sub{ font-family:Arial,sans-serif; font-size:9px; color:var(--muted); margin-top:3px; }
+  header .meta{ font-family:Arial,sans-serif; font-size:9.5px; text-align:right; color:var(--muted); line-height:1.5; }
+  header .shopname{ font-family:Arial,sans-serif; font-size:9.5px; font-weight:700; letter-spacing:0.5px; color:var(--ink); text-transform:uppercase; margin-bottom:3px; }
+  section{ margin-bottom:14px; }
+  section h2{ font-family:Arial,sans-serif; font-size:9.5px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); border-bottom:1px solid #cfc9ba; padding-bottom:4px; margin:0 0 8px 0; }
+  .grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px 16px; }
+  .field{ font-family:Arial,sans-serif; }
+  .field label{ display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:0.3px; color:var(--muted); margin-bottom:4px; }
+  .field.auto .box{ background:#f1edf9; border-bottom:1.3px solid var(--accent); padding:4.5px 7px; font-size:14px; font-weight:600; min-height:28px; display:flex; align-items:center; justify-content:center; text-align:center; }
+  .prepost{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .prepost .col{ border:1px solid #cfc9ba; padding:10px 12px; }
+  .prepost .col h3{ font-family:Arial,sans-serif; font-size:9.5px; letter-spacing:0.6px; text-transform:uppercase; margin:0 0 7px 0; }
+  .prepost .grid{ grid-template-columns:repeat(2,1fr); gap:8px 10px; }
+  .seq-title{ display:flex; align-items:center; gap:8px; margin-bottom:2px; }
+  .seq-title .badge{ background:var(--accent); color:#fff; font-family:Arial,sans-serif; font-size:9px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; padding:3px 8px; border-radius:20px; }
+  .seq-row{ display:grid; grid-template-columns:20px 1fr auto auto 70px; align-items:center; gap:10px; padding:9px 8px; border-bottom:1px solid #e5e1d8; font-family:Arial,sans-serif; }
+  .seq-row.drain{ background:#fdf1f1; }
+  .seq-num{ font-weight:800; color:#b0a9c7; font-size:12px; }
+  .seq-what{ font-size:12.5px; }
+  .seq-action{ color:var(--muted); font-weight:600; }
+  .seq-gas{ font-weight:800; text-transform:uppercase; letter-spacing:0.3px; }
+  .seq-qty{ font-size:14px; font-weight:800; white-space:nowrap; }
+  .seq-qty .seq-unit{ font-size:9px; font-weight:600; margin-left:2px; }
+  .seq-to{ font-size:9px; color:var(--muted); text-align:right; line-height:1.3; white-space:nowrap; }
+  .seq-to strong{ font-size:11.5px; color:var(--ink); }
+  .seq-mix{ font-family:'Azeret Mono',monospace; font-size:9.5px; text-align:right; color:var(--muted); white-space:nowrap; }
+  .notebox{ margin-top:16px; border:1px dashed #b8b2a3; border-radius:6px; padding:10px 12px; font-family:Arial,sans-serif; font-size:9px; color:var(--muted); }
+  footer{ margin-top:14px; border-top:1px solid #cfc9ba; padding-top:8px; font-family:Arial,sans-serif; font-size:8.2px; color:var(--muted); display:flex; justify-content:space-between; }
+</style></head><body>
+<div class="sheet">
+  <header>
+    <div>
+      ${shopNameVal ? '<div class="shopname">' + shopNameVal + '</div>' : ''}
+      <h1>Sequenza di Ricarica</h1>
+      <div class="sub">BlendingStation &mdash; Foglio operativo</div>
+    </div>
+    <div class="meta">
+      <div>Data: ${dataOggi}</div>
+    </div>
+  </header>
+  <section>
+    <h2>Dati generali</h2>
+    <div class="grid" style="grid-template-columns:1fr 1fr;">
+      <div class="field auto"><label>Cliente</label><div class="box">${cName}</div></div>
+      <div class="field auto"><label>Bombola</label><div class="box">${cylLabel}</div></div>
+    </div>
+  </section>
+  <section>
+    <h2>Residuo &rarr; Target</h2>
+    <div class="prepost">
+      <div class="col">
+        <h3>Residuo</h3>
+        <div class="grid">
+          <div class="field auto"><label>O2%</label><div class="box">${oS}</div></div>
+          <div class="field auto"><label>He%</label><div class="box">${hS}</div></div>
+          <div class="field auto"><label>N2%</label><div class="box">${nS}</div></div>
+          <div class="field auto"><label>Bar</label><div class="box">${pSVal}</div></div>
+        </div>
+      </div>
+      <div class="col">
+        <h3>Target</h3>
+        <div class="grid">
+          <div class="field auto"><label>O2%</label><div class="box">${oE}</div></div>
+          <div class="field auto"><label>He%</label><div class="box">${hE}</div></div>
+          <div class="field auto"><label>N2%</label><div class="box">${nE}</div></div>
+          <div class="field auto"><label>Bar</label><div class="box">${pEVal}</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="seq-title"><h2 style="border:none; padding:0; margin:0;">Sequenza operativa</h2><span class="badge">${window._fsSteps.length} passi</span></div>
+    ${stepsHtml}
+  </section>
+  <div class="notebox">Foglio preparatorio ad uso interno &mdash; non sostituisce Report o Registro di Miscelazione, che andranno generati e firmati dal blender al momento della ricarica effettiva.</div>
+  <footer>
+    <span>Generato da BlendingStation</span>
+    <span>Ordine gas: ${document.getElementById('fillOrder') ? document.getElementById('fillOrder').selectedOptions[0].text : ''}</span>
+  </footer>
+</div>
+</body></html>`;
+
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.top = '0';
+        iframe.style.left = '-10000px';
+        iframe.style.width = '560px';
+        iframe.style.height = '800px';
+        iframe.style.border = 'none';
+        document.body.appendChild(iframe);
+
+        iframe.onload = function() {
+            const sheetEl = iframe.contentDocument.querySelector('.sheet');
+            html2canvas(sheetEl, { scale: 2.5, backgroundColor: '#ffffff', useCORS: true }).then(function(canvas) {
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const pdf = new jspdf.jsPDF({ unit: 'mm', format: 'a5' });
+                pdf.addImage(imgData, 'JPEG', 0, 0, 148, 210);
+                document.body.removeChild(iframe);
+
+                const fileName = 'sequenza-ricarica-' + dataOggi.replace(/\//g, '-') + '.pdf';
+                const blob = pdf.output('blob');
+                const file = new File([blob], fileName, { type: 'application/pdf' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({ files: [file], title: 'Sequenza di Ricarica' }).catch(function(){});
+                } else {
+                    pdf.autoPrint();
+                    const url = URL.createObjectURL(pdf.output('blob'));
+                    window.open(url, '_blank');
+                    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+                }
+            }).catch(function(err) {
+                document.body.removeChild(iframe);
+                alert('Errore nella generazione del PDF: ' + err.message);
+            });
+        };
+        iframe.srcdoc = html;
+        } catch(err) { alert(curT().al_error_prefix + ' ' + err.message); }
+    }
+
     // ── FULLSCREEN OPERATIVE MODE ─────────────────────────────
     let _fsIndex = 0;
     const GAS_COLORS = {
@@ -3516,6 +3710,7 @@ function mobileNav(tab) {
         var dInput = document.getElementById('modalDiverInput');
         var bField = document.getElementById('modalBlenderField');
         var dField = document.getElementById('modalDiverField');
+        var action = window.namesModalPendingAction || 'receipt';
 
         // Copy values back to main inputs
         if (bField.style.display !== 'none' && bInput.value.trim()) {
@@ -3525,11 +3720,14 @@ function mobileNav(tab) {
             document.getElementById('customerName').value = dInput.value.trim();
         }
 
-        // Check still missing
+        // Check still missing. La Sequenza di Ricarica è un foglio operativo
+        // preparatorio: serve solo il nome cliente, il blender lo metterà lui
+        // stesso dopo, quando genererà report/registro con la propria firma.
         var b = document.getElementById('blenderName').value.trim();
         var c = document.getElementById('customerName').value.trim();
-        if (!b || !c) {
-            if (bField.style.display !== 'none') bInput.style.borderColor = !b ? '#ef4444' : '';
+        var blenderRequired = action !== 'sequenza';
+        if ((blenderRequired && !b) || !c) {
+            if (blenderRequired && bField.style.display !== 'none') bInput.style.borderColor = !b ? '#ef4444' : '';
             if (dField.style.display !== 'none') dInput.style.borderColor = !c ? '#ef4444' : '';
             return;
         }
@@ -3537,9 +3735,9 @@ function mobileNav(tab) {
         // Close modal and generate the pending document
         document.getElementById('namesModal').classList.remove('open');
         saveAndCalc();
-        var action = window.namesModalPendingAction || 'receipt';
         setTimeout(function() {
             if (action === 'registro') { generateRegistroMiscelazione(); }
+            else if (action === 'sequenza') { generateSequenzaRicarica(); }
             else { generateReceipt(); }
         }, 100);
     }
