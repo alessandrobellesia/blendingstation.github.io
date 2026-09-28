@@ -1078,7 +1078,7 @@
 
         <div style="border-top:1px solid var(--border-ui); padding-top:14px; text-align:center; font-size:0.7em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text);">
             Copyright © 2026 <b>Blending Station</b><br>
-            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.86</b><br>
+            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.87</b><br>
             <span style="font-size:0.9em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569; margin-top:4px; display:block;"><span id="lg_createdby_m">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
@@ -1338,7 +1338,7 @@
             <span id="lg_disclaimer_d">Nota Legale: Questo strumento è destinato esclusivamente a gas blender certificati. Le miscele di gas devono essere sempre analizzate e validate prima dell'uso. Blending Station declina ogni responsabilità per uso improprio o errori di ricarica.</span>
         </p>
         <div class="footer-copyright">
-            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.86</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
+            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.87</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
 </footer>
@@ -2887,7 +2887,10 @@
                   <span class="seq-qty">${s.qty.toFixed(1)}<span class="seq-unit">bar</span></span>
                 </div>
                 <div class="seq-line-to">fino a <strong>${s.fino.toFixed(1)} bar</strong></div>
-                <div class="seq-line-mix">Miscela risultante: <span class="seq-mix">O₂ ${s.mix.o.toFixed(1)}% &nbsp;/&nbsp; He ${s.mix.h.toFixed(1)}% &nbsp;/&nbsp; N₂ ${s.mix.n.toFixed(1)}%</span></div>
+                <div class="seq-line-mix">
+                  <span class="seq-mix-label">Miscela risultante</span>
+                  <div class="seq-mix">O₂&nbsp;${s.mix.o.toFixed(1)}&nbsp;% &nbsp;/&nbsp; He&nbsp;${s.mix.h.toFixed(1)}&nbsp;% &nbsp;/&nbsp; N₂&nbsp;${s.mix.n.toFixed(1)}&nbsp;%</div>
+                </div>
               </div>
             </div>`;
         }).join('');
@@ -2928,8 +2931,9 @@
   .seq-qty .seq-unit{ font-size:9px; font-weight:600; margin-left:2px; }
   .seq-line-to{ font-size:12px; color:var(--muted); background:#f4efe6; border-left:3px solid var(--accent); padding:5px 8px; border-radius:3px; }
   .seq-line-to strong{ font-size:19px; color:var(--accent); font-weight:800; margin-left:3px; }
-  .seq-line-mix{ font-size:9.5px; color:var(--muted); }
-  .seq-mix{ font-family:'Azeret Mono',monospace; font-weight:600; color:var(--ink); }
+  .seq-line-mix{ display:flex; flex-direction:column; gap:2px; }
+  .seq-mix-label{ font-size:8px; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; }
+  .seq-mix{ font-family:'Azeret Mono',monospace; font-weight:400; font-size:9px; color:var(--ink); white-space:nowrap; }
   .notebox{ margin-top:16px; border:1px dashed #b8b2a3; border-radius:6px; padding:10px 12px; font-family:Arial,sans-serif; font-size:9px; color:var(--muted); }
   footer{ margin-top:14px; border-top:1px solid #cfc9ba; padding-top:8px; font-family:Arial,sans-serif; font-size:8.2px; color:var(--muted); display:flex; justify-content:space-between; }
 </style></head><body>
