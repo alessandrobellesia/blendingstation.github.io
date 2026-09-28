@@ -1078,7 +1078,7 @@
 
         <div style="border-top:1px solid var(--border-ui); padding-top:14px; text-align:center; font-size:0.7em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text);">
             Copyright © 2026 <b>Blending Station</b><br>
-            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.85</b><br>
+            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.86</b><br>
             <span style="font-size:0.9em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569; margin-top:4px; display:block;"><span id="lg_createdby_m">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
@@ -1338,7 +1338,7 @@
             <span id="lg_disclaimer_d">Nota Legale: Questo strumento è destinato esclusivamente a gas blender certificati. Le miscele di gas devono essere sempre analizzate e validate prima dell'uso. Blending Station declina ogni responsabilità per uso improprio o errori di ricarica.</span>
         </p>
         <div class="footer-copyright">
-            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.85</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
+            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.86</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
 </footer>
@@ -2895,7 +2895,7 @@
         const html = `<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
 <title>Sequenza di Ricarica</title>
 <style>
-  :root{ --ink:#1c2b2e; --line:#2c4a4f; --muted:#1c2b2e; --accent:#6d28d9; }
+  :root{ --ink:#1c2b2e; --line:#2c4a4f; --muted:#1c2b2e; --accent:#8a6b3f; }
   *{ box-sizing:border-box; }
   body{ font-family:'Georgia','Times New Roman',serif; color:var(--ink); background:#fff; margin:0; }
   .sheet{ width:148mm; min-height:210mm; margin:0 auto; padding:12mm 13mm; }
@@ -2909,7 +2909,7 @@
   .grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px 16px; }
   .field{ font-family:Arial,sans-serif; }
   .field label{ display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:0.3px; color:var(--muted); margin-bottom:4px; }
-  .field.auto .box{ background:#f1edf9; border-bottom:1.3px solid var(--accent); padding:4.5px 7px; font-size:14px; font-weight:600; min-height:28px; display:flex; align-items:center; justify-content:center; text-align:center; }
+  .field.auto .box{ background:#e8e8e6; border-bottom:1.3px solid #9a9a94; padding:4.5px 7px; font-size:14px; font-weight:600; min-height:28px; display:flex; align-items:center; justify-content:center; text-align:center; }
   .prepost{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .prepost .col{ border:1px solid #cfc9ba; padding:10px 12px; }
   .prepost .col h3{ font-family:Arial,sans-serif; font-size:9.5px; letter-spacing:0.6px; text-transform:uppercase; margin:0 0 7px 0; }
@@ -2918,16 +2918,16 @@
   .seq-title .badge{ background:var(--accent); color:#fff; font-family:Arial,sans-serif; font-size:9px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; padding:3px 8px; border-radius:20px; }
   .seq-row{ display:flex; align-items:flex-start; gap:12px; padding:12px 8px; border-bottom:1px solid #e5e1d8; font-family:Arial,sans-serif; }
   .seq-row.drain{ background:#fdf1f1; }
-  .seq-num{ font-weight:800; color:#b0a9c7; font-size:14px; flex-shrink:0; width:18px; padding-top:1px; }
-  .seq-body{ flex:1; display:flex; flex-direction:column; gap:4px; }
+  .seq-num{ font-weight:800; color:#b8ada0; font-size:14px; flex-shrink:0; width:18px; padding-top:1px; }
+  .seq-body{ flex:1; display:flex; flex-direction:column; gap:5px; }
   .seq-line-top{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
   .seq-what{ font-size:13.5px; }
   .seq-action{ color:var(--muted); font-weight:600; }
   .seq-gas{ font-weight:800; text-transform:uppercase; letter-spacing:0.3px; }
   .seq-qty{ font-size:16px; font-weight:800; white-space:nowrap; }
   .seq-qty .seq-unit{ font-size:9px; font-weight:600; margin-left:2px; }
-  .seq-line-to{ font-size:10.5px; color:var(--muted); }
-  .seq-line-to strong{ font-size:12px; color:var(--ink); }
+  .seq-line-to{ font-size:12px; color:var(--muted); background:#f4efe6; border-left:3px solid var(--accent); padding:5px 8px; border-radius:3px; }
+  .seq-line-to strong{ font-size:19px; color:var(--accent); font-weight:800; margin-left:3px; }
   .seq-line-mix{ font-size:9.5px; color:var(--muted); }
   .seq-mix{ font-family:'Azeret Mono',monospace; font-weight:600; color:var(--ink); }
   .notebox{ margin-top:16px; border:1px dashed #b8b2a3; border-radius:6px; padding:10px 12px; font-family:Arial,sans-serif; font-size:9px; color:var(--muted); }
