@@ -1078,7 +1078,7 @@
 
         <div style="border-top:1px solid var(--border-ui); padding-top:14px; text-align:center; font-size:0.7em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text);">
             Copyright © 2026 <b>Blending Station</b><br>
-            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.84</b><br>
+            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.85</b><br>
             <span style="font-size:0.9em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569; margin-top:4px; display:block;"><span id="lg_createdby_m">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
@@ -1338,7 +1338,7 @@
             <span id="lg_disclaimer_d">Nota Legale: Questo strumento è destinato esclusivamente a gas blender certificati. Le miscele di gas devono essere sempre analizzate e validate prima dell'uso. Blending Station declina ogni responsabilità per uso improprio o errori di ricarica.</span>
         </p>
         <div class="footer-copyright">
-            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.84</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
+            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.85</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
 </footer>
@@ -2881,10 +2881,14 @@
             const rowClass = s.type === 'DRAIN' ? ' drain' : '';
             return `<div class="seq-row${rowClass}">
               <div class="seq-num">${i + 1}</div>
-              <div class="seq-what"><span class="seq-action">${azione}</span> <span class="seq-gas">${gasLabel}</span></div>
-              <div class="seq-qty">${s.qty.toFixed(1)}<span class="seq-unit">bar</span></div>
-              <div class="seq-to">fino a<br><strong>${s.fino.toFixed(1)} bar</strong></div>
-              <div class="seq-mix">${s.mix.o.toFixed(1)}/${s.mix.h.toFixed(1)}/${s.mix.n.toFixed(1)}</div>
+              <div class="seq-body">
+                <div class="seq-line-top">
+                  <span class="seq-what"><span class="seq-action">${azione}</span> <span class="seq-gas">${gasLabel}</span></span>
+                  <span class="seq-qty">${s.qty.toFixed(1)}<span class="seq-unit">bar</span></span>
+                </div>
+                <div class="seq-line-to">fino a <strong>${s.fino.toFixed(1)} bar</strong></div>
+                <div class="seq-line-mix">Miscela risultante: <span class="seq-mix">O₂ ${s.mix.o.toFixed(1)}% &nbsp;/&nbsp; He ${s.mix.h.toFixed(1)}% &nbsp;/&nbsp; N₂ ${s.mix.n.toFixed(1)}%</span></div>
+              </div>
             </div>`;
         }).join('');
 
@@ -2912,17 +2916,20 @@
   .prepost .grid{ grid-template-columns:repeat(2,1fr); gap:8px 10px; }
   .seq-title{ display:flex; align-items:center; gap:8px; margin-bottom:2px; }
   .seq-title .badge{ background:var(--accent); color:#fff; font-family:Arial,sans-serif; font-size:9px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; padding:3px 8px; border-radius:20px; }
-  .seq-row{ display:grid; grid-template-columns:20px 1fr auto auto 70px; align-items:center; gap:10px; padding:9px 8px; border-bottom:1px solid #e5e1d8; font-family:Arial,sans-serif; }
+  .seq-row{ display:flex; align-items:flex-start; gap:12px; padding:12px 8px; border-bottom:1px solid #e5e1d8; font-family:Arial,sans-serif; }
   .seq-row.drain{ background:#fdf1f1; }
-  .seq-num{ font-weight:800; color:#b0a9c7; font-size:12px; }
-  .seq-what{ font-size:12.5px; }
+  .seq-num{ font-weight:800; color:#b0a9c7; font-size:14px; flex-shrink:0; width:18px; padding-top:1px; }
+  .seq-body{ flex:1; display:flex; flex-direction:column; gap:4px; }
+  .seq-line-top{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .seq-what{ font-size:13.5px; }
   .seq-action{ color:var(--muted); font-weight:600; }
   .seq-gas{ font-weight:800; text-transform:uppercase; letter-spacing:0.3px; }
-  .seq-qty{ font-size:14px; font-weight:800; white-space:nowrap; }
+  .seq-qty{ font-size:16px; font-weight:800; white-space:nowrap; }
   .seq-qty .seq-unit{ font-size:9px; font-weight:600; margin-left:2px; }
-  .seq-to{ font-size:9px; color:var(--muted); text-align:right; line-height:1.3; white-space:nowrap; }
-  .seq-to strong{ font-size:11.5px; color:var(--ink); }
-  .seq-mix{ font-family:'Azeret Mono',monospace; font-size:9.5px; text-align:right; color:var(--muted); white-space:nowrap; }
+  .seq-line-to{ font-size:10.5px; color:var(--muted); }
+  .seq-line-to strong{ font-size:12px; color:var(--ink); }
+  .seq-line-mix{ font-size:9.5px; color:var(--muted); }
+  .seq-mix{ font-family:'Azeret Mono',monospace; font-weight:600; color:var(--ink); }
   .notebox{ margin-top:16px; border:1px dashed #b8b2a3; border-radius:6px; padding:10px 12px; font-family:Arial,sans-serif; font-size:9px; color:var(--muted); }
   footer{ margin-top:14px; border-top:1px solid #cfc9ba; padding-top:8px; font-family:Arial,sans-serif; font-size:8.2px; color:var(--muted); display:flex; justify-content:space-between; }
 </style></head><body>
@@ -3000,7 +3007,13 @@
                 const blob = pdf.output('blob');
                 const file = new File([blob], fileName, { type: 'application/pdf' });
 
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                // Il pannello di condivisione nativo (navigator.share) va usato solo
+                // su telefono/tablet: Windows (Edge) e talvolta macOS lo supportano
+                // anche da desktop, dove però l'utente si aspetta di vedere subito
+                // il PDF pronto da stampare, non un pannello "Condividi con...".
+                const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+                if (isMobileDevice && navigator.canShare && navigator.canShare({ files: [file] })) {
                     navigator.share({ files: [file], title: 'Sequenza di Ricarica' }).catch(function(){});
                 } else {
                     pdf.autoPrint();
