@@ -48,6 +48,7 @@ const CROP = {
   h: 0,
   dragging: false,
   resizing: false,
+  resizingTL: false,
   startX: 0,
   startY: 0,
   startRect: null,
@@ -225,9 +226,10 @@ function wireCropHandlers() {
 
   const box = document.getElementById("cropBox");
   const handle = document.getElementById("cropHandle");
+  const handleTL = document.getElementById("cropHandleTL");
 
   box.addEventListener("pointerdown", function (e) {
-    if (e.target === handle) return; // il resize lo gestisce l'handle
+    if (e.target === handle || e.target === handleTL) return; // il resize lo gestiscono gli handle
     e.preventDefault();
     CROP.dragging = true;
     CROP.startX = e.clientX;
@@ -246,12 +248,25 @@ function wireCropHandlers() {
     try { handle.setPointerCapture(e.pointerId); } catch (err) {}
   });
 
+  handleTL.addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    CROP.resizingTL = true;
+    CROP.startX = e.clientX;
+    CROP.startY = e.clientY;
+    CROP.startRect = { x: CROP.x, y: CROP.y, w: CROP.w, h: CROP.h };
+    try { handleTL.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+
   box.addEventListener("pointermove", handleCropMove);
   handle.addEventListener("pointermove", handleCropMove);
+  handleTL.addEventListener("pointermove", handleCropMove);
   box.addEventListener("pointerup", handleCropEnd);
   handle.addEventListener("pointerup", handleCropEnd);
+  handleTL.addEventListener("pointerup", handleCropEnd);
   box.addEventListener("pointercancel", handleCropEnd);
   handle.addEventListener("pointercancel", handleCropEnd);
+  handleTL.addEventListener("pointercancel", handleCropEnd);
 }
 
 function handleCropMove(e) {
@@ -266,6 +281,7 @@ function handleCropMove(e) {
       CROP.startRect.h,
     );
   } else if (CROP.resizing) {
+    // Maniglia in basso a destra: l'angolo in alto a sinistra resta fisso.
     e.preventDefault();
     const dx = e.clientX - CROP.startX;
     const dy = e.clientY - CROP.startY;
@@ -275,12 +291,23 @@ function handleCropMove(e) {
       CROP.startRect.w + dx,
       CROP.startRect.h + dy,
     );
+  } else if (CROP.resizingTL) {
+    // Maniglia in alto a sinistra: l'angolo in basso a destra resta fisso.
+    e.preventDefault();
+    const dx = e.clientX - CROP.startX;
+    const dy = e.clientY - CROP.startY;
+    const fixedRight = CROP.startRect.x + CROP.startRect.w;
+    const fixedBottom = CROP.startRect.y + CROP.startRect.h;
+    const newX = CROP.startRect.x + dx;
+    const newY = CROP.startRect.y + dy;
+    setCropRect(newX, newY, fixedRight - newX, fixedBottom - newY);
   }
 }
 
 function handleCropEnd() {
   CROP.dragging = false;
   CROP.resizing = false;
+  CROP.resizingTL = false;
 }
 
 /** Converte il riquadro di ritaglio (in pixel a schermo, relativi a
