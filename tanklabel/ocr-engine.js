@@ -360,7 +360,7 @@ function analyzePhoto() {
     }
 
     const threshold = parseInt(
-      document.getElementById("thresholdSlider")?.value ?? 110,
+      document.getElementById("thresholdSlider")?.value ?? 220,
     );
     debugText.textContent = `📐 Immagine: ${OCR.canvas.width}x${OCR.canvas.height}\n💡 Soglia luce: ${threshold}\n⚙️ Estrazione pixel...`;
 
@@ -483,7 +483,7 @@ function extractLightPixels(imageData, threshold) {
 /** Alias di compatibilità — legge la soglia dallo slider UI */
 function extractYellowPixels(imageData) {
   const threshold = parseInt(
-    document.getElementById("thresholdSlider")?.value ?? 110,
+    document.getElementById("thresholdSlider")?.value ?? 220,
   );
   return extractLightPixels(imageData, threshold);
 }
