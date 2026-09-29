@@ -573,6 +573,61 @@ function recognizeDigits(lightMask, width, height) {
   };
 }
 
+/** Divide una regione (che il rilevatore ritiene contenga `parts` cifre
+ * incollate) nei punti di minima densità di pixel colonna-per-colonna,
+ * invece che in parti geometricamente uguali. Ripete la ricerca del "punto
+ * più stretto" sul pezzo più largo finché non si ottengono `parts` pezzi, o
+ * finché non trova più un punto di divisione sensato (evita divisioni
+ * degeneri troppo vicine ai bordi). */
+function splitRegionAtValleys(colDensity, region, parts) {
+  let pieces = [region];
+
+  while (pieces.length < parts) {
+    pieces.sort((a, b) => (b.x2 - b.x1) - (a.x2 - a.x1));
+    const target = pieces.shift();
+    const w = target.x2 - target.x1;
+    const margin = Math.max(2, Math.floor(w * 0.22));
+
+    if (w - margin * 2 < 3) {
+      // troppo stretto per dividere in modo sensato
+      pieces.push(target);
+      break;
+    }
+
+    let splitX = -1,
+      bestVal = Infinity;
+    for (let x = target.x1 + margin; x < target.x2 - margin; x++) {
+      if (colDensity[x] < bestVal) {
+        bestVal = colDensity[x];
+        splitX = x;
+      }
+    }
+
+    if (splitX < 0) {
+      pieces.push(target);
+      break;
+    }
+
+    pieces.push({
+      x1: target.x1,
+      x2: splitX,
+      y1: target.y1,
+      y2: target.y2,
+      width: splitX - target.x1,
+    });
+    pieces.push({
+      x1: splitX,
+      x2: target.x2,
+      y1: target.y1,
+      y2: target.y2,
+      width: target.x2 - splitX,
+    });
+  }
+
+  pieces.sort((a, b) => a.x1 - b.x1);
+  return pieces;
+}
+
 function extractNumberFromBand(mask, width, band, debugKey) {
   const { start, end } = band;
 
@@ -651,16 +706,13 @@ function extractNumberFromBand(mask, width, band, debugKey) {
         splitRegions.push(region);
         continue;
       }
-      const partWidth = (region.x2 - region.x1) / parts;
-      for (let p = 0; p < parts; p++) {
-        splitRegions.push({
-          x1: Math.round(region.x1 + p * partWidth),
-          x2: Math.round(region.x1 + (p + 1) * partWidth),
-          y1: region.y1,
-          y2: region.y2,
-          width: partWidth,
-        });
-      }
+      // Non dividiamo a metà esatta: due cifre che si toccano quasi mai hanno
+      // la stessa larghezza (es. "2" largo + "1" stretto in "21"). Cerchiamo
+      // invece il punto di minima densità di pixel ("valle") tra le due, che
+      // segue la vera forma delle cifre invece di una divisione geometrica.
+      splitRegions.push(
+        ...splitRegionAtValleys(colDensity, region, parts),
+      );
     }
     digitRegions = splitRegions;
   }
