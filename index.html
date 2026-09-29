@@ -181,6 +181,20 @@
         .price-date-display { display: block; text-align: right; font-size: 0.65em; color: #64748b; text-transform: uppercase; font-weight: 700; margin-top: 8px; }
         
         .btn-ascii { background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 15px; width: 100%; text-transform: uppercase; }
+
+        .doc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .doc-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px 8px; border-radius: 14px; border: none; cursor: pointer; font-family: inherit; transition: transform 0.15s ease; }
+        .doc-tile:hover { transform: translateY(-2px); }
+        .doc-tile-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1em; }
+        .doc-tile-label { font-size: 0.72em; font-weight: 800; color: #f1f5f9; text-transform: uppercase; letter-spacing: 0.3px; text-align: center; line-height: 1.35; }
+        .doc-tile-report { background: rgba(52,152,219,0.12); }
+        .doc-tile-report .doc-tile-icon { background: rgba(52,152,219,0.2); color: #3498db; }
+        .doc-tile-registro { background: rgba(169,116,78,0.12); }
+        .doc-tile-registro .doc-tile-icon { background: rgba(169,116,78,0.2); color: #c98a5e; }
+        .doc-tile-sequenza { background: rgba(139,92,246,0.12); }
+        .doc-tile-sequenza .doc-tile-icon { background: rgba(139,92,246,0.2); color: #a78bfa; }
+        .doc-tile-storico { background: rgba(100,116,139,0.12); }
+        .doc-tile-storico .doc-tile-icon { background: rgba(100,116,139,0.2); color: #94a3b8; }
         #asciiContainer { display: none; margin: 20px auto; padding: 20px; background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border-ui); text-align: center; max-width: 420px; position: relative; overflow-x: auto; }
         .ascii-receipt { font-family: 'Azeret Mono', monospace; white-space: pre; font-size: 0.85em; text-align: left; display: inline-block; padding: 20px; border: 1px solid var(--border-ui); color: var(--primary); background: var(--input-bg); width: auto; max-width: 100%; }
 
@@ -1078,7 +1092,7 @@
 
         <div style="border-top:1px solid var(--border-ui); padding-top:14px; text-align:center; font-size:0.7em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text);">
             Copyright © 2026 <b>Blending Station</b><br>
-            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.88</b><br>
+            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.89</b><br>
             <span style="font-size:0.9em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569; margin-top:4px; display:block;"><span id="lg_createdby_m">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
@@ -1297,16 +1311,24 @@
             </div>
             <div class="footer-card" style="display:flex; flex-direction:column;">
                 <div class="card-title" style="color:var(--accent);"><i class="fa-solid fa-file-lines"></i> <span id="lbl_documents">DOCUMENTI</span></div>
-                <button class="btn-ascii" onclick="generateReceipt()" style="margin-top:0;"><i class="fa-solid fa-receipt"></i> <span id="btn_report">Genera Report</span></button>
-                <button onclick="generateRegistroMiscelazione()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:var(--color-he); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.78em; text-transform:uppercase; letter-spacing:0.04em; margin-top:12px;">
-                    <i class="fa-solid fa-file-signature"></i> <span>Registro Miscelazione</span>
-                </button>
-                <button onclick="generateSequenzaRicarica()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:#6d28d9; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.78em; text-transform:uppercase; letter-spacing:0.04em; margin-top:8px;">
-                    <i class="fa-solid fa-list-ol"></i> <span>Sequenza di Ricarica</span>
-                </button>
-                <button onclick="showHistoryModal()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:#475569; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.78em; text-transform:uppercase; letter-spacing:0.04em; margin-top:8px;">
-                    <i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="ui_view_history_btn">Visualizza Storico Ricariche</span>
-                </button>
+                <div class="doc-grid">
+                    <button class="doc-tile doc-tile-report" onclick="generateReceipt()">
+                        <span class="doc-tile-icon"><i class="fa-solid fa-receipt"></i></span>
+                        <span class="doc-tile-label" id="btn_report">Genera Report</span>
+                    </button>
+                    <button class="doc-tile doc-tile-registro" onclick="generateRegistroMiscelazione()">
+                        <span class="doc-tile-icon"><i class="fa-solid fa-file-signature"></i></span>
+                        <span class="doc-tile-label">Registro Miscelazione</span>
+                    </button>
+                    <button class="doc-tile doc-tile-sequenza" onclick="generateSequenzaRicarica()">
+                        <span class="doc-tile-icon"><i class="fa-solid fa-list-ol"></i></span>
+                        <span class="doc-tile-label">Sequenza di Ricarica</span>
+                    </button>
+                    <button class="doc-tile doc-tile-storico" onclick="showHistoryModal()">
+                        <span class="doc-tile-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                        <span class="doc-tile-label" data-i18n="ui_view_history_btn">Visualizza Storico Ricariche</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1338,7 +1360,7 @@
             <span id="lg_disclaimer_d">Nota Legale: Questo strumento è destinato esclusivamente a gas blender certificati. Le miscele di gas devono essere sempre analizzate e validate prima dell'uso. Blending Station declina ogni responsabilità per uso improprio o errori di ricarica.</span>
         </p>
         <div class="footer-copyright">
-            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.88</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
+            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.89</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
 </footer>
