@@ -168,7 +168,7 @@
         .op-quota-val { color: var(--accent); font-size: 1.3em; font-weight: 800; font-family: 'Azeret Mono'; }
         .op-row-drain { background: rgba(239, 68, 68, 0.25) !important; border-left: 8px solid #ef4444 !important; }
         
-        .footer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding: 25px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.15); }
+        .footer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; gap: 20px; padding: 25px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.15); }
         .footer-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; min-width: 0; }
         
         .cost-row { display: flex; align-items: center; color: #e2e8f0; margin-bottom: 12px; font-size: 0.85em; }
@@ -182,8 +182,8 @@
         
         .btn-ascii { background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 15px; width: 100%; text-transform: uppercase; }
 
-        .doc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-        .doc-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px 8px; border-radius: 14px; border: none; cursor: pointer; font-family: inherit; transition: transform 0.15s ease; }
+        .doc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; flex: 1; }
+        .doc-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px 8px; border-radius: 14px; border: none; cursor: pointer; font-family: inherit; transition: transform 0.15s ease; width: 100%; height: 100%; box-sizing: border-box; }
         .doc-tile:hover { transform: translateY(-2px); }
         .doc-tile-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1em; }
         .doc-tile-label { font-size: 0.72em; font-weight: 800; color: #f1f5f9; text-transform: uppercase; letter-spacing: 0.3px; text-align: center; line-height: 1.35; }
@@ -1092,7 +1092,7 @@
 
         <div style="border-top:1px solid var(--border-ui); padding-top:14px; text-align:center; font-size:0.7em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text);">
             Copyright © 2026 <b>Blending Station</b><br>
-            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.90</b><br>
+            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.91</b><br>
             <span style="font-size:0.9em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569; margin-top:4px; display:block;"><span id="lg_createdby_m">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
@@ -1360,7 +1360,7 @@
             <span id="lg_disclaimer_d">Nota Legale: Questo strumento è destinato esclusivamente a gas blender certificati. Le miscele di gas devono essere sempre analizzate e validate prima dell'uso. Blending Station declina ogni responsabilità per uso improprio o errori di ricarica.</span>
         </p>
         <div class="footer-copyright">
-            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.90</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
+            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.91</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
 </footer>
