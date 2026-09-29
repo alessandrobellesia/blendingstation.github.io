@@ -105,6 +105,9 @@ function openOcrModal() {
   document.getElementById("retakeBtn").style.display = "none";
   CROP.w = 0;
   CROP.h = 0;
+  OCR._lastCapture = null;
+  const manualDetailsReset = document.getElementById("manualInputDetails");
+  if (manualDetailsReset) manualDetailsReset.open = false;
 
   // Pre-riempi i campi manuali con i valori correnti
   document.getElementById("quickO2").value =
@@ -400,6 +403,16 @@ function analyzePhoto() {
       debugText.textContent += `\n🔁 Scambi 1↔4 applicati: ${OCR._debugOverrides.join(", ")}`;
     }
     debugText.textContent += `\n🔢 Valori: O₂=${result.o2 !== null ? result.o2.toFixed(1) : "?"}, He=${result.he !== null ? result.he.toFixed(1) : "?"}`;
+    try {
+      const learned = loadLearnedTemplates();
+      const learnedCount = Object.values(learned).reduce(
+        (s, arr) => s + (Array.isArray(arr) ? arr.length : 0),
+        0,
+      );
+      if (learnedCount > 0) {
+        debugText.textContent += `\n🧠 Forme imparate da questo dispositivo: ${learnedCount}`;
+      }
+    } catch (e) {}
     if (OCR._usedFallback) {
       debugText.textContent += "\n⚠️ Fallback attivo: cifre parziali recuperate";
     }
@@ -415,7 +428,22 @@ function analyzePhoto() {
       document.getElementById("scanResults").style.display = "block";
       document.getElementById("confirmBtn").style.display = "inline-flex";
       document.getElementById("scanInstructions").textContent =
-        "✅ Valori rilevati! Verifica e conferma, oppure regola la soglia 💡 o rifai la foto.";
+        "✅ Valori rilevati! Se sono giusti tocca Conferma, se una cifra è sbagliata correggila in \"Inserimento manuale\" qui sotto prima di confermare.";
+
+      // Teniamo i campi di inserimento manuale allineati al valore appena
+      // letto: così, se una cifra è sbagliata, l'utente la corregge lì
+      // invece di dover ripartire da zero — ed è anche da lì che
+      // confirmScanValues() prende il valore definitivo.
+      if (result.o2 !== null) {
+        document.getElementById("quickO2").value = result.o2.toFixed(1);
+      }
+      if (result.he !== null) {
+        document.getElementById("quickHe").value = result.he.toFixed(1);
+      }
+      // Apriamo subito i campi correggibili, altrimenti sono nascosti in
+      // una sezione richiudibile che l'utente potrebbe non notare.
+      const manualDetails = document.getElementById("manualInputDetails");
+      if (manualDetails) manualDetails.open = true;
 
       if (navigator.vibrate) navigator.vibrate(200);
     } else {
@@ -430,18 +458,42 @@ function analyzePhoto() {
   }
 }
 
-function confirmScanValues() {
-  let o2 = OCR.detectedO2;
-  let he = OCR.detectedHe;
+/** Se il valore finale confermato ha la stessa "forma" (stesse posizioni di
+ * cifre e punto) di quello letto automaticamente, insegna al motore la
+ * forma reale di ogni cifra — corretta o già giusta che fosse. Se le
+ * lunghezze non coincidono (es. l'utente ha riscritto tutto da zero) non
+ * alliniamo nulla, per non insegnare forme sbagliate. */
+function learnFromCapture(capture, finalValue) {
+  if (!capture || finalValue === null || isNaN(finalValue)) return;
+  const finalStr = finalValue.toFixed(1);
+  if (finalStr.length !== capture.str.length) return;
 
-  if (o2 === null)
-    o2 = parseFloat(document.getElementById("quickO2").value) || 21;
-  if (he === null)
-    he = parseFloat(document.getElementById("quickHe").value) || 0;
+  for (let i = 0; i < finalStr.length; i++) {
+    const ch = finalStr[i];
+    if (ch === ".") continue;
+    const grid = capture.grids[i];
+    if (grid) learnDigitShape(ch, grid);
+  }
+}
+
+function confirmScanValues() {
+  // Il valore definitivo viene sempre dai campi di "Inserimento manuale":
+  // dopo uno scan riuscito vengono precompilati col valore letto, quindi se
+  // l'utente non tocca nulla equivalgono al risultato automatico, ma se una
+  // cifra era sbagliata l'utente l'ha già corretta lì.
+  const o2 = parseFloat(document.getElementById("quickO2").value);
+  const he = parseFloat(document.getElementById("quickHe").value);
+  const finalO2 = !isNaN(o2) ? o2 : OCR.detectedO2 !== null ? OCR.detectedO2 : 21;
+  const finalHe = !isNaN(he) ? he : OCR.detectedHe !== null ? OCR.detectedHe : 0;
+
+  if (OCR._lastCapture) {
+    learnFromCapture(OCR._lastCapture.o2, finalO2);
+    learnFromCapture(OCR._lastCapture.he, finalHe);
+  }
 
   if (typeof DOM !== "undefined") {
-    DOM.inputs.o2Input.value = o2;
-    DOM.inputs.heInput.value = he;
+    DOM.inputs.o2Input.value = finalO2;
+    DOM.inputs.heInput.value = finalHe;
     if (typeof updatePreview === "function") updatePreview();
     if (typeof saveSettings === "function") saveSettings();
   }
@@ -753,18 +805,29 @@ function extractNumberFromBand(mask, width, band, debugKey) {
     digitRegions = splitRegions;
   }
 
-  // Ricostruzione stringa numerica
+  // Ricostruzione stringa numerica. Teniamo anche, posizione per posizione,
+  // la griglia di ogni cifra (null per il punto): serve dopo, se l'utente
+  // conferma/corregge il valore, per "insegnare" quella forma al motore
+  // (vedi learnDigitShape).
   let numberStr = "";
+  const digitGrids = [];
 
   for (const region of digitRegions) {
     if (isDecimalPoint(mask, width, region, bandHeight)) {
       numberStr += "."; // punto decimale: pixel confinati in basso
+      digitGrids.push(null);
     } else {
-      numberStr += recognizeDigitGrid(mask, width, region);
+      const grid = computeDigitGrid(mask, width, region);
+      numberStr += matchDigitGrid(grid).digit;
+      digitGrids.push(grid);
     }
   }
 
   if (debugKey && OCR._debugStrings) OCR._debugStrings[debugKey] = numberStr;
+  if (debugKey) {
+    if (!OCR._lastCapture) OCR._lastCapture = {};
+    OCR._lastCapture[debugKey] = { str: numberStr, grids: digitGrids };
+  }
 
   const num = parseFloat(numberStr);
   if (!isNaN(num) && num >= 0 && num <= 100) return num;
@@ -786,7 +849,11 @@ function extractNumberFromBand(mask, width, band, debugKey) {
   return null;
 }
 
-function recognizeDigitGrid(mask, maskWidth, region) {
+/** Costruisce solo la griglia 14×24 di intensità per una regione — la parte
+ * "immagine → numeri" del riconoscimento, separata dal confronto coi
+ * template così la griglia può essere salvata (per l'apprendimento) anche
+ * quando il confronto sbaglia. */
+function computeDigitGrid(mask, maskWidth, region) {
   const { x1, x2, y1, y2 } = region;
   const regWidth = x2 - x1;
   const regHeight = y2 - y1;
@@ -820,40 +887,104 @@ function recognizeDigitGrid(mask, maskWidth, region) {
     grid.push(row);
   }
 
+  return grid;
+}
+
+/* =========================================================
+ * MODELLI "IMPARATI" DAL DISPOSITIVO DELL'UTENTE
+ * ========================================================= *
+ * I template statici (digit-templates.js) sono tarati su UN font. I test
+ * mostrano che analizzatori diversi (font diversi) confondono cifre diverse
+ * fra loro, quindi nessuna correzione fissa va bene per tutti. Invece,
+ * quando l'utente conferma/corregge una lettura, salviamo la forma reale
+ * delle cifre di QUEL display come "template personale" per quell'app
+ * (localStorage): nel tempo il confronto si allinea al font vero in uso.
+ */
+const LEARN_STORAGE_KEY = "tanklabel_learned_digit_templates_v1";
+const LEARN_MAX_VARIANTS_PER_DIGIT = 6;
+
+function loadLearnedTemplates() {
+  if (OCR._learnedTemplates) return OCR._learnedTemplates;
+  let parsed = {};
+  try {
+    const raw = localStorage.getItem(LEARN_STORAGE_KEY);
+    if (raw) parsed = JSON.parse(raw) || {};
+  } catch (e) {
+    parsed = {};
+  }
+  OCR._learnedTemplates = parsed;
+  return parsed;
+}
+
+function saveLearnedTemplates(templates) {
+  OCR._learnedTemplates = templates;
+  try {
+    localStorage.setItem(LEARN_STORAGE_KEY, JSON.stringify(templates));
+  } catch (e) {
+    // localStorage pieno/non disponibile: l'apprendimento resta solo in
+    // memoria per questa sessione, non è un errore bloccante.
+  }
+}
+
+/** Registra la forma reale (griglia) di una cifra confermata dall'utente
+ * come nuova cifra "0"-"9" — usata da confirmScanValues() quando l'utente
+ * accetta o corregge una lettura. */
+function learnDigitShape(digitChar, grid) {
+  if (!grid || !/^[0-9]$/.test(digitChar)) return;
+  const templates = loadLearnedTemplates();
+  if (!Array.isArray(templates[digitChar])) templates[digitChar] = [];
+  templates[digitChar].push({ data: grid });
+  // FIFO: teniamo solo le varianti più recenti per cifra.
+  while (templates[digitChar].length > LEARN_MAX_VARIANTS_PER_DIGIT) {
+    templates[digitChar].shift();
+  }
+  saveLearnedTemplates(templates);
+}
+
+/** Confronta una griglia coi template statici + quelli imparati da questo
+ * dispositivo. I modelli imparati competono alla pari con quelli statici:
+ * essendo catture reali dello stesso font, con l'uso finiscono per
+ * "vincere" naturalmente sulle cifre che quel font confonde. */
+function matchDigitGrid(grid) {
   let bestDigit = "?",
     bestScore = Infinity;
 
-  for (const [digit, variants] of Object.entries(DIGIT_TEMPLATES)) {
-    if (digit === "GRID_WIDTH" || digit === "GRID_HEIGHT") continue;
-    if (!Array.isArray(variants)) continue;
+  const learned = loadLearnedTemplates();
+  const allSources = [DIGIT_TEMPLATES, learned];
 
-    for (const variant of variants) {
-      let totalDistance = 0;
-      for (let y = 0; y < GRID_H; y++) {
-        for (let x = 0; x < GRID_W; x++) {
-          totalDistance += Math.abs(grid[y][x] - variant.data[y][x]);
+  for (const source of allSources) {
+    for (const [digit, variants] of Object.entries(source)) {
+      if (digit === "GRID_WIDTH" || digit === "GRID_HEIGHT") continue;
+      if (!Array.isArray(variants)) continue;
+
+      for (const variant of variants) {
+        let totalDistance = 0;
+        for (let y = 0; y < GRID_H; y++) {
+          for (let x = 0; x < GRID_W; x++) {
+            totalDistance += Math.abs(grid[y][x] - variant.data[y][x]);
+          }
         }
-      }
-      if (totalDistance < bestScore) {
-        bestScore = totalDistance;
-        bestDigit = digit;
+        if (totalDistance < bestScore) {
+          bestScore = totalDistance;
+          bestDigit = digit;
+        }
       }
     }
   }
 
   const matchQuality = 1 - bestScore / (GRID_W * GRID_H * 8);
   // Soglia al 40% (tolleranza aumentata rispetto al 50% originale)
-  if (matchQuality < 0.4) return "?";
+  if (matchQuality < 0.4) return { digit: "?", quality: matchQuality };
 
-  // NB: qui esisteva uno scambio 1↔4 incondizionato, tarato su un unico
-  // scatto/analizzatore. Rimosso: su un display diverso (font diverso) ha
-  // trasformato un "2" letto correttamente come "1" in un "4" ancora più
-  // sbagliato — la confusione tra cifre cambia da un modello di
-  // analizzatore all'altro e non si può correggere con una regola fissa.
-  // Meglio il risultato grezzo del pattern-matching, corretto a mano quando
-  // serve con i campi rapidi qui sotto.
+  return { digit: bestDigit, quality: matchQuality };
+}
 
-  return bestDigit;
+/** Riconosce una cifra a partire dalla regione nell'immagine: calcola la
+ * griglia e la confronta coi template. Usata dove serve solo il carattere
+ * (non serve salvare la griglia per l'apprendimento). */
+function recognizeDigitGrid(mask, maskWidth, region) {
+  const grid = computeDigitGrid(mask, maskWidth, region);
+  return matchDigitGrid(grid).digit;
 }
 
 function sampleRegion(mask, width, x1, y1, x2, y2) {
