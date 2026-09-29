@@ -36,6 +36,24 @@ const OCR = {
   _photoObjectUrl: null,
 };
 
+/* ---- Stato riquadro di ritaglio (crop box) ----
+ * Coordinate in pixel "a schermo" relative a #photoWrap (non pixel naturali
+ * della foto). La conversione a pixel naturali avviene in
+ * getCropRectNatural() al momento dell'analisi.
+ */
+const CROP = {
+  x: 0,
+  y: 0,
+  w: 0,
+  h: 0,
+  dragging: false,
+  resizing: false,
+  startX: 0,
+  startY: 0,
+  startRect: null,
+  _wired: false,
+};
+
 /* ---- Pattern 7 segmenti (non più usati attivamente, mantenuti per riferimento) ---- */
 const DIGIT_PATTERNS = {
   0: [1, 1, 1, 0, 1, 1, 1],
@@ -76,11 +94,16 @@ function openOcrModal() {
 
   // Reset foto precedente (se l'utente riapre la modale dopo una scansione)
   const img = document.getElementById("capturedPhotoImg");
-  img.style.display = "none";
   img.removeAttribute("src");
+  document.getElementById("photoWrap").style.display = "none";
+  document.getElementById("cropBox").style.display = "none";
+  document.getElementById("cropHint").style.display = "none";
+  document.getElementById("analyzeBtn").style.display = "none";
   document.getElementById("cameraPlaceholder").style.display = "flex";
   document.getElementById("captureBtn").style.display = "inline-flex";
   document.getElementById("retakeBtn").style.display = "none";
+  CROP.w = 0;
+  CROP.h = 0;
 
   // Pre-riempi i campi manuali con i valori correnti
   document.getElementById("quickO2").value =
@@ -122,9 +145,12 @@ function handlePhotoSelected(event) {
 
   img.onload = function () {
     placeholder.style.display = "none";
-    img.style.display = "block";
+    document.getElementById("photoWrap").style.display = "block";
     document.getElementById("captureBtn").style.display = "none";
     document.getElementById("retakeBtn").style.display = "inline-flex";
+    document.getElementById("analyzeBtn").style.display = "inline-flex";
+    document.getElementById("cropHint").style.display = "block";
+    initCropBox();
     analyzePhoto();
   };
   img.src = OCR._photoObjectUrl;
@@ -133,10 +159,142 @@ function handlePhotoSelected(event) {
 /** Chiamata quando si sposta lo slider soglia: rianalizza la stessa foto già scattata, senza dover riscattare. */
 function onThresholdChange(value) {
   document.getElementById("thresholdValue").textContent = value;
-  const img = document.getElementById("capturedPhotoImg");
-  if (img && img.style.display !== "none" && img.src) {
+  const wrap = document.getElementById("photoWrap");
+  if (wrap && wrap.style.display !== "none") {
     analyzePhoto();
   }
+}
+
+/* =========================================================
+ * RIQUADRO DI RITAGLIO (crop box) — trascinabile e ridimensionabile
+ * ========================================================= */
+
+/** Inizializza/riposiziona il riquadro di ritaglio con un default centrato
+ * sulla foto appena caricata, e collega i gestori di trascinamento/resize
+ * (una sola volta). */
+function initCropBox() {
+  const wrap = document.getElementById("photoWrap");
+  const box = document.getElementById("cropBox");
+  const img = document.getElementById("capturedPhotoImg");
+
+  box.style.display = "block";
+
+  // Rettangolo di default: centrato, 90% larghezza, 35% altezza del display
+  const ww = wrap.clientWidth;
+  const wh = img.clientHeight || wrap.clientHeight;
+  const w = ww * 0.9;
+  const h = Math.max(50, wh * 0.35);
+  const x = (ww - w) / 2;
+  const y = (wh - h) / 2;
+  setCropRect(x, y, w, h);
+
+  wireCropHandlers();
+}
+
+function setCropRect(x, y, w, h) {
+  const wrap = document.getElementById("photoWrap");
+  const img = document.getElementById("capturedPhotoImg");
+  const box = document.getElementById("cropBox");
+  if (!wrap || !img || !box) return;
+
+  const maxW = wrap.clientWidth;
+  const maxH = img.clientHeight;
+  if (!maxW || !maxH) return;
+
+  w = Math.max(30, Math.min(w, maxW));
+  h = Math.max(20, Math.min(h, maxH));
+  x = Math.max(0, Math.min(x, maxW - w));
+  y = Math.max(0, Math.min(y, maxH - h));
+  w = Math.min(w, maxW - x);
+  h = Math.min(h, maxH - y);
+
+  CROP.x = x;
+  CROP.y = y;
+  CROP.w = w;
+  CROP.h = h;
+
+  box.style.left = x + "px";
+  box.style.top = y + "px";
+  box.style.width = w + "px";
+  box.style.height = h + "px";
+}
+
+function wireCropHandlers() {
+  if (CROP._wired) return;
+  CROP._wired = true;
+
+  const box = document.getElementById("cropBox");
+  const handle = document.getElementById("cropHandle");
+
+  box.addEventListener("pointerdown", function (e) {
+    if (e.target === handle) return; // il resize lo gestisce l'handle
+    e.preventDefault();
+    CROP.dragging = true;
+    CROP.startX = e.clientX;
+    CROP.startY = e.clientY;
+    CROP.startRect = { x: CROP.x, y: CROP.y, w: CROP.w, h: CROP.h };
+    try { box.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+
+  handle.addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    CROP.resizing = true;
+    CROP.startX = e.clientX;
+    CROP.startY = e.clientY;
+    CROP.startRect = { x: CROP.x, y: CROP.y, w: CROP.w, h: CROP.h };
+    try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+
+  box.addEventListener("pointermove", handleCropMove);
+  handle.addEventListener("pointermove", handleCropMove);
+  box.addEventListener("pointerup", handleCropEnd);
+  handle.addEventListener("pointerup", handleCropEnd);
+  box.addEventListener("pointercancel", handleCropEnd);
+  handle.addEventListener("pointercancel", handleCropEnd);
+}
+
+function handleCropMove(e) {
+  if (CROP.dragging) {
+    e.preventDefault();
+    const dx = e.clientX - CROP.startX;
+    const dy = e.clientY - CROP.startY;
+    setCropRect(
+      CROP.startRect.x + dx,
+      CROP.startRect.y + dy,
+      CROP.startRect.w,
+      CROP.startRect.h,
+    );
+  } else if (CROP.resizing) {
+    e.preventDefault();
+    const dx = e.clientX - CROP.startX;
+    const dy = e.clientY - CROP.startY;
+    setCropRect(
+      CROP.startRect.x,
+      CROP.startRect.y,
+      CROP.startRect.w + dx,
+      CROP.startRect.h + dy,
+    );
+  }
+}
+
+function handleCropEnd() {
+  CROP.dragging = false;
+  CROP.resizing = false;
+}
+
+/** Converte il riquadro di ritaglio (in pixel a schermo, relativi a
+ * #photoWrap) in pixel naturali della foto scattata. */
+function getCropRectNatural() {
+  const img = document.getElementById("capturedPhotoImg");
+  const wrap = document.getElementById("photoWrap");
+  const scale = img.naturalWidth / wrap.clientWidth;
+  return {
+    x: Math.round(CROP.x * scale),
+    y: Math.round(CROP.y * scale),
+    w: Math.round(CROP.w * scale),
+    h: Math.round(CROP.h * scale),
+  };
 }
 
 /* =========================================================
@@ -152,10 +310,20 @@ function analyzePhoto() {
   debugText.textContent = "Analisi foto...";
 
   try {
-    OCR.canvas.width = img.naturalWidth;
-    OCR.canvas.height = img.naturalHeight;
+    const box = document.getElementById("cropBox");
+    const hasCrop = CROP.w > 0 && CROP.h > 0 && box && box.style.display !== "none";
     const ctx = OCR.canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0);
+
+    if (hasCrop) {
+      const crop = getCropRectNatural();
+      OCR.canvas.width = crop.w;
+      OCR.canvas.height = crop.h;
+      ctx.drawImage(img, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h);
+    } else {
+      OCR.canvas.width = img.naturalWidth;
+      OCR.canvas.height = img.naturalHeight;
+      ctx.drawImage(img, 0, 0);
+    }
 
     const threshold = parseInt(
       document.getElementById("thresholdSlider")?.value ?? 110,
