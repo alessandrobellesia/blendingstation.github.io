@@ -168,8 +168,8 @@
         .op-quota-val { color: var(--accent); font-size: 1.3em; font-weight: 800; font-family: 'Azeret Mono'; }
         .op-row-drain { background: rgba(239, 68, 68, 0.25) !important; border-left: 8px solid #ef4444 !important; }
         
-        .footer-grid { display: flex; flex-wrap: wrap; gap: 20px; padding: 25px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.15); }
-        .footer-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; flex: 1; min-width: 300px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding: 25px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.15); }
+        .footer-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; min-width: 0; }
         
         .cost-row { display: flex; align-items: center; color: #e2e8f0; margin-bottom: 12px; font-size: 0.85em; }
         .cost-row > span:first-child { flex: 1; font-weight: 600; text-align: left; }
@@ -556,7 +556,7 @@
             .op-gas-name { font-size: 1.4em !important; font-weight: 900 !important; }
             .op-quota-val { font-size: 1.7em !important; font-weight: 900 !important; }
             .mix-box { width: 100%; text-align: center; min-width: unset; font-size: 1em !important; padding: 10px !important; margin-top: 6px; }
-            .footer-card { min-width: 100%; } 
+            .footer-grid { grid-template-columns: 1fr; }
             .settings-dropdown { position: fixed !important; top: 60px !important; left: 16px !important; right: 16px !important; width: auto !important; max-width: none !important; border: 2px solid var(--accent) !important; box-shadow: 0 15px 45px rgba(0,0,0,0.5) !important; }
             .safety-summary-container .input-grid { display: flex !important; flex-direction: column !important; gap: 10px !important; }
             .safety-list-item { width: 100% !important; grid-column: span 1 !important; }
@@ -1092,7 +1092,7 @@
 
         <div style="border-top:1px solid var(--border-ui); padding-top:14px; text-align:center; font-size:0.7em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text);">
             Copyright © 2026 <b>Blending Station</b><br>
-            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.89</b><br>
+            All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.90</b><br>
             <span style="font-size:0.9em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569; margin-top:4px; display:block;"><span id="lg_createdby_m">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
@@ -1360,7 +1360,7 @@
             <span id="lg_disclaimer_d">Nota Legale: Questo strumento è destinato esclusivamente a gas blender certificati. Le miscele di gas devono essere sempre analizzate e validate prima dell'uso. Blending Station declina ogni responsabilità per uso improprio o errori di ricarica.</span>
         </p>
         <div class="footer-copyright">
-            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.89</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
+            Copyright © 2026 <b>Blending Station</b> | All Rights Reserved | Tool Version: <b onclick="handleTitleTap()" style="cursor:pointer;" title="Tap 5x per log errori">v1.90</b><br><span style="font-size:0.85em; font-weight:600; text-transform:none; letter-spacing:0; color:#475569;"><span id="lg_createdby_d">Creato e pensato da</span> <b style="color:var(--accent);">Kiko</b></span>
         </div>
     </div>
 </footer>
