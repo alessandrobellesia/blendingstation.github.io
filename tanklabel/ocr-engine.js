@@ -390,7 +390,7 @@ function analyzePhoto() {
       debugText.textContent += `\n🔤 Stringa letta: O₂="${OCR._debugStrings.o2}" He="${OCR._debugStrings.he}"`;
     }
     if (OCR._debugOverrides && OCR._debugOverrides.length) {
-      debugText.textContent += `\n🔍 1↔4 (cifra@larghezza/altezza): ${OCR._debugOverrides.join(", ")}`;
+      debugText.textContent += `\n🔁 Scambi 1↔4 applicati: ${OCR._debugOverrides.join(", ")}`;
     }
     debugText.textContent += `\n🔢 Valori: O₂=${result.o2 !== null ? result.o2.toFixed(1) : "?"}, He=${result.he !== null ? result.he.toFixed(1) : "?"}`;
     if (OCR._usedFallback) {
@@ -811,17 +811,20 @@ function recognizeDigitGrid(mask, maskWidth, region) {
   // Soglia al 40% (tolleranza aumentata rispetto al 50% originale)
   if (matchQuality < 0.4) return "?";
 
-  // NB: qui esisteva una correzione 1↔4 basata sul rapporto larghezza/
-  // altezza della cifra. Rimossa: sui dati reali il "1" di questo display
-  // (0.61) è risultato PIÙ largo del "4" (0.46), l'opposto di quanto
-  // ipotizzato, quindi la correzione ribaltava letture già corrette. Il
-  // pattern-matching a griglia da solo, dopo il fix della segmentazione
-  // (vedi splitRegionAtValleys), si è dimostrato affidabile su 1 e 4.
-  if (bestDigit === "4" || bestDigit === "1") {
-    const aspect = regHeight > 0 ? regWidth / regHeight : 0;
-    if (OCR._debugOverrides) {
-      OCR._debugOverrides.push(`${bestDigit}@${aspect.toFixed(2)}`);
-    }
+  // Scambio 1↔4: su questo display (font/soglia attuali) il pattern-matching
+  // a griglia confonde questi due sistematicamente E IN MODO INVERTITO — un
+  // vero "1" viene sempre etichettato "4" (rapporto larghezza/altezza ~0.46)
+  // e un vero "4" viene sempre etichettato "1" (~0.61), confermato su più
+  // scatti/ritagli diversi. Non è un'euristica sulla forma: è la correzione
+  // diretta di uno scambio osservato costantemente, quindi invertiamo le due
+  // etichette invece di provare a indovinare da quale forma provengano.
+  if (bestDigit === "1") {
+    if (OCR._debugOverrides) OCR._debugOverrides.push("1→4");
+    return "4";
+  }
+  if (bestDigit === "4") {
+    if (OCR._debugOverrides) OCR._debugOverrides.push("4→1");
+    return "1";
   }
 
   return bestDigit;
