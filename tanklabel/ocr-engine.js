@@ -389,6 +389,9 @@ function analyzePhoto() {
     if (OCR._debugStrings) {
       debugText.textContent += `\n🔤 Stringa letta: O₂="${OCR._debugStrings.o2}" He="${OCR._debugStrings.he}"`;
     }
+    if (OCR._debugOverrides && OCR._debugOverrides.length) {
+      debugText.textContent += `\n🔍 1↔4 (cifra@larghezza/altezza): ${OCR._debugOverrides.join(", ")}`;
+    }
     debugText.textContent += `\n🔢 Valori: O₂=${result.o2 !== null ? result.o2.toFixed(1) : "?"}, He=${result.he !== null ? result.he.toFixed(1) : "?"}`;
     if (OCR._usedFallback) {
       debugText.textContent += "\n⚠️ Fallback attivo: cifre parziali recuperate";
@@ -561,6 +564,7 @@ function recognizeDigits(lightMask, width, height) {
   const bands = allBands.slice(0, 2).sort((a, b) => a.start - b.start);
 
   OCR._debugStrings = { o2: "", he: "" };
+  OCR._debugOverrides = [];
 
   return {
     o2: bands.length >= 1 ? extractNumberFromBand(mask, width, bands[0], "o2") : null,
@@ -753,7 +757,23 @@ function recognizeDigitGrid(mask, maskWidth, region) {
 
   const matchQuality = 1 - bestScore / (GRID_W * GRID_H * 8);
   // Soglia al 40% (tolleranza aumentata rispetto al 50% originale)
-  return matchQuality >= 0.4 ? bestDigit : "?";
+  if (matchQuality < 0.4) return "?";
+
+  // Correzione mirata 1↔4: sono la coppia più spesso confusa dal
+  // pattern-matching a griglia (soprattutto quando il "4" ha il tratto
+  // superiore corto). Il "1" è molto più stretto del "4" rispetto alla sua
+  // stessa altezza: usiamo questo rapporto larghezza/altezza, molto più
+  // affidabile della sola forma, come controllo finale.
+  if (bestDigit === "4" || bestDigit === "1") {
+    const aspect = regHeight > 0 ? regWidth / regHeight : 0;
+    if (OCR._debugOverrides) {
+      OCR._debugOverrides.push(`${bestDigit}@${aspect.toFixed(2)}`);
+    }
+    if (bestDigit === "4" && aspect < 0.42) return "1";
+    if (bestDigit === "1" && aspect > 0.48) return "4";
+  }
+
+  return bestDigit;
 }
 
 function sampleRegion(mask, width, x1, y1, x2, y2) {
