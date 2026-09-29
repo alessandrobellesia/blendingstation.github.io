@@ -111,6 +111,13 @@ function openOcrModal() {
     (typeof DOM !== "undefined" ? DOM.inputs.o2Input.value : 21.0) || 21.0;
   document.getElementById("quickHe").value =
     (typeof DOM !== "undefined" ? DOM.inputs.heInput.value : 0.0) || 0.0;
+
+  // Apre subito la fotocamera nativa, senza far toccare "Scatta Foto" come
+  // passaggio intermedio. Va chiamato in modo sincrono (non in un
+  // setTimeout) per restare dentro lo stesso "gesto utente" del tap sul
+  // pulsante Scan, altrimenti alcuni browser/iOS bloccano l'apertura
+  // automatica della fotocamera.
+  triggerPhotoCapture();
 }
 
 function closeOcrModal() {
