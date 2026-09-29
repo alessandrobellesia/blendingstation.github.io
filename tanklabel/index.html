@@ -439,7 +439,7 @@
 
   <footer>
     <p style="font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3)">
-      2026 TankLabel - Version 5.45
+      2026 TankLabel - Version 5.47
     </p>
   </footer>
 
@@ -873,8 +873,14 @@
       const o2Note = document.getElementById("o2ExactNote");
       if (o2Note) o2Note.textContent = (o2ceil !== o2) ? `${o2.toFixed(1)}% misurato` : "";
 
-      // He: stesso trattamento
-      const heceil = Math.ceil(he);
+      // He: arrotondamento per DIFETTO (floor), mai per eccesso. Regola
+      // generale della app: si arrotonda sempre nella direzione che non
+      // sovrastima il rischio o il contenuto dichiarato. Per l'O2 questo
+      // vuol dire per eccesso (mai dichiarare meno O2 del reale: MOD più
+      // conservativo). Per l'He vuol dire per difetto (mai dichiarare più
+      // He del reale: una traccia come 0.1-0.9% resta "0", non "1", e non
+      // fa passare una nitrox pura per un trimix).
+      const heceil = Math.floor(he);
       DOM.displays.heDisplay.textContent = `${heceil}%`;
       const heNote = document.getElementById("heExactNote");
       if (heNote) heNote.textContent = (heActive && heceil !== he) ? `${he.toFixed(1)}% misurato` : "";
@@ -883,8 +889,9 @@
       DOM.displays.dateTimeDisplay.textContent = dateStr;
 
       // --- SKIN 1: Divesoft ---
-      // Mix ratio: arrotondamento per ECCESSO (sicurezza anti-iperossia)
-      const dvHeceil = Math.ceil(he);
+      // Mix ratio: O2 per ECCESSO (sicurezza anti-iperossia), He per DIFETTO
+      // (mai dichiarare più He del reale — vedi nota sopra).
+      const dvHeceil = Math.floor(he);
       const o2ratioStr = dvO2ceil.toString();
       const heratioStr = dvHeceil.toString();
       document.getElementById("dvMixRatio").textContent = heActive ? `${o2ratioStr} / ${heratioStr}` : `${o2ratioStr} / 0`;
