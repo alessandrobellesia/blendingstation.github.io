@@ -3,22 +3,27 @@
  * Motore di riconoscimento ottico per display analizzatori subacquei.
  * Estratto da index.html come parte del refactoring v4.0
  *
+ * v2: la cattura non usa più un feed video live (getUserMedia) — troppo
+ * spesso mosso/sfocato. Ora si usa lo scatto foto nativo del telefono
+ * tramite <input type="file" capture="environment">, che resta dentro il
+ * flusso dell'app (nessuna app fotocamera separata da cui tornare) ma
+ * sfrutta autofocus/esposizione della fotocamera di sistema. La foto
+ * catturata resta disponibile per rianalizzarla con soglie diverse senza
+ * dover riscattare.
+ *
  * Dipendenze:
  *   - digit-templates.js (deve essere caricato prima)
- *   - DOM: #videoElement, #captureCanvas, #ocrModal, #thresholdSlider,
+ *   - DOM: #photoInput, #capturedPhotoImg, #cameraPlaceholder, #captureBtn,
+ *          #retakeBtn, #captureCanvas, #ocrModal, #thresholdSlider,
  *          #maskPreviewWrap, #maskCanvas, #scanResults, #detectedO2,
- *          #detectedHe, #confirmBtn, #scanInstructions, #scanBtn,
- *          #debugPanel, #debugText, #quickO2, #quickHe
+ *          #detectedHe, #confirmBtn, #scanInstructions, #debugPanel,
+ *          #debugText, #quickO2, #quickHe
  */
 
 "use strict";
 
 /* ---- Stato OCR ---- */
 const OCR = {
-  stream: null,
-  get video() {
-    return document.getElementById("videoElement");
-  },
   get canvas() {
     return document.getElementById("captureCanvas");
   },
@@ -28,6 +33,7 @@ const OCR = {
   detectedO2: null,
   detectedHe: null,
   _usedFallback: false,
+  _photoObjectUrl: null,
 };
 
 /* ---- Pattern 7 segmenti (non più usati attivamente, mantenuti per riferimento) ---- */
@@ -52,19 +58,7 @@ const GRID_H = DIGIT_TEMPLATES.GRID_HEIGHT; // 24
  * APERTURA / CHIUSURA MODALE
  * ========================================================= */
 
-async function openOcrModal() {
-  const isSecure =
-    window.location.protocol === "https:" ||
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
-
-  if (!isSecure) {
-    alert(
-      "⚠️ La fotocamera richiede HTTPS.\n\nUsa GitHub Pages o altro hosting sicuro.",
-    );
-    return;
-  }
-
+function openOcrModal() {
   OCR.modal.classList.add("active");
   document.body.style.overflow = "hidden";
   document.body.style.position = "fixed";
@@ -77,38 +71,28 @@ async function openOcrModal() {
   document.getElementById("confirmBtn").style.display = "none";
   document.getElementById("debugPanel").style.display = "none";
   document.getElementById("maskPreviewWrap").style.display = "none";
-  document.getElementById("scanBtn").disabled = false;
   document.getElementById("scanInstructions").textContent =
-    "Inquadra il display dell'analizzatore";
+    "Tocca \"Scatta Foto\" e inquadra il display dell'analizzatore";
+
+  // Reset foto precedente (se l'utente riapre la modale dopo una scansione)
+  const img = document.getElementById("capturedPhotoImg");
+  img.style.display = "none";
+  img.removeAttribute("src");
+  document.getElementById("cameraPlaceholder").style.display = "flex";
+  document.getElementById("captureBtn").style.display = "inline-flex";
+  document.getElementById("retakeBtn").style.display = "none";
 
   // Pre-riempi i campi manuali con i valori correnti
   document.getElementById("quickO2").value =
     (typeof DOM !== "undefined" ? DOM.inputs.o2Input.value : 21.0) || 21.0;
   document.getElementById("quickHe").value =
     (typeof DOM !== "undefined" ? DOM.inputs.heInput.value : 0.0) || 0.0;
-
-  try {
-    const constraints = {
-      video: {
-        facingMode: "environment",
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-      },
-    };
-    OCR.stream = await navigator.mediaDevices.getUserMedia(constraints);
-    OCR.video.srcObject = OCR.stream;
-    OCR.video.play().catch((e) => console.log("Play error:", e));
-  } catch (err) {
-    console.error("Camera Error:", err);
-    document.getElementById("scanInstructions").textContent =
-      "Camera non disponibile - usa input manuale";
-  }
 }
 
 function closeOcrModal() {
-  if (OCR.stream) {
-    OCR.stream.getTracks().forEach((track) => track.stop());
-    OCR.video.srcObject = null;
+  if (OCR._photoObjectUrl) {
+    URL.revokeObjectURL(OCR._photoObjectUrl);
+    OCR._photoObjectUrl = null;
   }
   OCR.modal.classList.remove("active");
   document.body.style.overflow = "";
@@ -117,24 +101,61 @@ function closeOcrModal() {
 }
 
 /* =========================================================
- * SCANSIONE PRINCIPALE
+ * SCATTO FOTO (nativo, resta dentro l'app)
  * ========================================================= */
 
-async function scanDisplay() {
-  const scanBtn = document.getElementById("scanBtn");
+function triggerPhotoCapture() {
+  const input = document.getElementById("photoInput");
+  input.value = ""; // permette di riselezionare la stessa foto se si rifà lo scatto
+  input.click();
+}
+
+function handlePhotoSelected(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const img = document.getElementById("capturedPhotoImg");
+  const placeholder = document.getElementById("cameraPlaceholder");
+
+  if (OCR._photoObjectUrl) URL.revokeObjectURL(OCR._photoObjectUrl);
+  OCR._photoObjectUrl = URL.createObjectURL(file);
+
+  img.onload = function () {
+    placeholder.style.display = "none";
+    img.style.display = "block";
+    document.getElementById("captureBtn").style.display = "none";
+    document.getElementById("retakeBtn").style.display = "inline-flex";
+    analyzePhoto();
+  };
+  img.src = OCR._photoObjectUrl;
+}
+
+/** Chiamata quando si sposta lo slider soglia: rianalizza la stessa foto già scattata, senza dover riscattare. */
+function onThresholdChange(value) {
+  document.getElementById("thresholdValue").textContent = value;
+  const img = document.getElementById("capturedPhotoImg");
+  if (img && img.style.display !== "none" && img.src) {
+    analyzePhoto();
+  }
+}
+
+/* =========================================================
+ * ANALISI PRINCIPALE (sulla foto scattata)
+ * ========================================================= */
+
+function analyzePhoto() {
+  const img = document.getElementById("capturedPhotoImg");
   const debugPanel = document.getElementById("debugPanel");
   const debugText = document.getElementById("debugText");
 
-  scanBtn.disabled = true;
-  scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analisi...';
   debugPanel.style.display = "block";
-  debugText.textContent = "Cattura immagine...";
+  debugText.textContent = "Analisi foto...";
 
   try {
-    OCR.canvas.width = OCR.video.videoWidth;
-    OCR.canvas.height = OCR.video.videoHeight;
+    OCR.canvas.width = img.naturalWidth;
+    OCR.canvas.height = img.naturalHeight;
     const ctx = OCR.canvas.getContext("2d");
-    ctx.drawImage(OCR.video, 0, 0);
+    ctx.drawImage(img, 0, 0);
 
     const threshold = parseInt(
       document.getElementById("thresholdSlider")?.value ?? 110,
@@ -186,21 +207,18 @@ async function scanDisplay() {
       document.getElementById("scanResults").style.display = "block";
       document.getElementById("confirmBtn").style.display = "inline-flex";
       document.getElementById("scanInstructions").textContent =
-        "✅ Valori rilevati! Verifica e conferma.";
+        "✅ Valori rilevati! Verifica e conferma, oppure regola la soglia 💡 o rifai la foto.";
 
       if (navigator.vibrate) navigator.vibrate(200);
     } else {
       document.getElementById("scanInstructions").textContent =
-        "❌ Lettura fallita. Regola la soglia 💡 e riprova, o usa inserimento manuale.";
+        "❌ Lettura fallita. Regola la soglia 💡, oppure rifai la foto o usa inserimento manuale.";
     }
   } catch (e) {
     console.error("Scan error:", e);
     debugText.textContent += `\n❌ Errore: ${e.message}`;
     document.getElementById("scanInstructions").textContent =
-      "❌ Errore durante la scansione.";
-  } finally {
-    scanBtn.disabled = false;
-    scanBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Scansiona Display';
+      "❌ Errore durante l'analisi.";
   }
 }
 
