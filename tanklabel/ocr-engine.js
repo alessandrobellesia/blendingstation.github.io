@@ -811,18 +811,17 @@ function recognizeDigitGrid(mask, maskWidth, region) {
   // Soglia al 40% (tolleranza aumentata rispetto al 50% originale)
   if (matchQuality < 0.4) return "?";
 
-  // Correzione mirata 1↔4: sono la coppia più spesso confusa dal
-  // pattern-matching a griglia (soprattutto quando il "4" ha il tratto
-  // superiore corto). Il "1" è molto più stretto del "4" rispetto alla sua
-  // stessa altezza: usiamo questo rapporto larghezza/altezza, molto più
-  // affidabile della sola forma, come controllo finale.
+  // NB: qui esisteva una correzione 1↔4 basata sul rapporto larghezza/
+  // altezza della cifra. Rimossa: sui dati reali il "1" di questo display
+  // (0.61) è risultato PIÙ largo del "4" (0.46), l'opposto di quanto
+  // ipotizzato, quindi la correzione ribaltava letture già corrette. Il
+  // pattern-matching a griglia da solo, dopo il fix della segmentazione
+  // (vedi splitRegionAtValleys), si è dimostrato affidabile su 1 e 4.
   if (bestDigit === "4" || bestDigit === "1") {
     const aspect = regHeight > 0 ? regWidth / regHeight : 0;
     if (OCR._debugOverrides) {
       OCR._debugOverrides.push(`${bestDigit}@${aspect.toFixed(2)}`);
     }
-    if (bestDigit === "4" && aspect < 0.42) return "1";
-    if (bestDigit === "1" && aspect > 0.48) return "4";
   }
 
   return bestDigit;
