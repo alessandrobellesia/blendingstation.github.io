@@ -359,6 +359,9 @@ function analyzePhoto() {
     );
 
     debugText.textContent += `\n📊 Righe cifre trovate: ${result.rows}`;
+    if (OCR._debugStrings) {
+      debugText.textContent += `\n🔤 Stringa letta: O₂="${OCR._debugStrings.o2}" He="${OCR._debugStrings.he}"`;
+    }
     debugText.textContent += `\n🔢 Valori: O₂=${result.o2 !== null ? result.o2.toFixed(1) : "?"}, He=${result.he !== null ? result.he.toFixed(1) : "?"}`;
     if (OCR._usedFallback) {
       debugText.textContent += "\n⚠️ Fallback attivo: cifre parziali recuperate";
@@ -530,14 +533,16 @@ function recognizeDigits(lightMask, width, height) {
   allBands.sort((a, b) => b.pixels - a.pixels);
   const bands = allBands.slice(0, 2).sort((a, b) => a.start - b.start);
 
+  OCR._debugStrings = { o2: "", he: "" };
+
   return {
-    o2: bands.length >= 1 ? extractNumberFromBand(mask, width, bands[0]) : null,
-    he: bands.length >= 2 ? extractNumberFromBand(mask, width, bands[1]) : null,
+    o2: bands.length >= 1 ? extractNumberFromBand(mask, width, bands[0], "o2") : null,
+    he: bands.length >= 2 ? extractNumberFromBand(mask, width, bands[1], "he") : null,
     rows: bands.length,
   };
 }
 
-function extractNumberFromBand(mask, width, band) {
+function extractNumberFromBand(mask, width, band, debugKey) {
   const { start, end } = band;
 
   // Densità per colonna nella banda
@@ -548,10 +553,11 @@ function extractNumberFromBand(mask, width, band) {
     }
   }
 
-  // Regioni delle singole cifre
+  // Regioni delle singole cifre. Soglia più bassa del passato (era 0.1) per
+  // non fondere cifre molto ravvicinate come "2" e "1" in "21".
   const maxCol = Math.max(...colDensity);
-  const threshold = maxCol * 0.1;
-  const digitRegions = [];
+  const threshold = maxCol * 0.06;
+  let digitRegions = [];
   let inDigit = false,
     digitStart = 0;
 
@@ -573,6 +579,60 @@ function extractNumberFromBand(mask, width, band) {
       }
     }
   }
+  // Una cifra può toccare il bordo destro della banda ritagliata: senza
+  // questo, l'ultima cifra andrebbe persa.
+  if (inDigit) {
+    const digitWidth = width - digitStart;
+    if (digitWidth > 3) {
+      digitRegions.push({
+        x1: digitStart,
+        x2: width,
+        y1: start,
+        y2: end,
+        width: digitWidth,
+      });
+    }
+  }
+
+  // Se due cifre si toccano (spaziatura del display troppo stretta perché la
+  // densità di colonna scenda sotto soglia), la regione risultante è molto
+  // più larga delle altre. Usiamo la larghezza "di riferimento" (mediana
+  // delle regioni non-punto) per dividerla in N cifre uguali invece di farla
+  // riconoscere come un unico simbolo sbagliato (es. "21" letto come "7").
+  const roughAvg =
+    digitRegions.reduce((s, r) => s + r.width, 0) / (digitRegions.length || 1);
+  const singleWidths = digitRegions
+    .filter((r) => r.width >= roughAvg * 0.4)
+    .map((r) => r.width)
+    .sort((a, b) => a - b);
+  const refWidth = singleWidths.length
+    ? singleWidths[Math.floor(singleWidths.length / 2)]
+    : roughAvg;
+
+  if (refWidth > 0) {
+    const splitRegions = [];
+    for (const region of digitRegions) {
+      const isLikelyDecimal = region.width < roughAvg * 0.4;
+      const parts = isLikelyDecimal
+        ? 1
+        : Math.max(1, Math.round(region.width / refWidth));
+      if (parts <= 1) {
+        splitRegions.push(region);
+        continue;
+      }
+      const partWidth = (region.x2 - region.x1) / parts;
+      for (let p = 0; p < parts; p++) {
+        splitRegions.push({
+          x1: Math.round(region.x1 + p * partWidth),
+          x2: Math.round(region.x1 + (p + 1) * partWidth),
+          y1: region.y1,
+          y2: region.y2,
+          width: partWidth,
+        });
+      }
+    }
+    digitRegions = splitRegions;
+  }
 
   // Ricostruzione stringa numerica
   let numberStr = "";
@@ -586,6 +646,8 @@ function extractNumberFromBand(mask, width, band) {
       numberStr += recognizeDigitGrid(mask, width, region);
     }
   }
+
+  if (debugKey && OCR._debugStrings) OCR._debugStrings[debugKey] = numberStr;
 
   const num = parseFloat(numberStr);
   if (!isNaN(num) && num >= 0 && num <= 100) return num;
