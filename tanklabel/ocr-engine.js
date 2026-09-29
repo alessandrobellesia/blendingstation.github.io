@@ -580,6 +580,34 @@ function recognizeDigits(lightMask, width, height) {
   };
 }
 
+/** Un punto decimale occupa solo la parte bassa della cifra (poche righe
+ * vicino alla base), mentre qualunque cifra — anche una stretta come "1" —
+ * attraversa quasi tutta l'altezza della banda. Guardare la sola larghezza
+ * confonde le due cose su font dove il "1" è molto sottile; l'estensione
+ * verticale reale dei pixel accesi è un indizio molto più affidabile e non
+ * dipende dal font del display. */
+function isDecimalPoint(mask, width, region, bandHeight) {
+  const { x1, x2, y1, y2 } = region;
+  let top = null,
+    bottom = null;
+  for (let y = y1; y < y2; y++) {
+    let rowHas = false;
+    for (let x = x1; x < x2; x++) {
+      if (mask[y * width + x]) {
+        rowHas = true;
+        break;
+      }
+    }
+    if (rowHas) {
+      if (top === null) top = y;
+      bottom = y;
+    }
+  }
+  if (top === null) return false; // regione vuota: non trattarla come punto
+  const extent = bottom - top + 1;
+  return extent < bandHeight * 0.35;
+}
+
 /** Divide una regione (che il rilevatore ritiene contenga `parts` cifre
  * incollate) nei punti di minima densità di pixel colonna-per-colonna,
  * invece che in parti geometricamente uguali. Ripete la ricerca del "punto
@@ -692,12 +720,13 @@ function extractNumberFromBand(mask, width, band, debugKey) {
   // più larga delle altre. Usiamo la larghezza "di riferimento" (mediana
   // delle regioni non-punto) per dividerla in N cifre uguali invece di farla
   // riconoscere come un unico simbolo sbagliato (es. "21" letto come "7").
-  const roughAvg =
-    digitRegions.reduce((s, r) => s + r.width, 0) / (digitRegions.length || 1);
+  const bandHeight = end - start;
   const singleWidths = digitRegions
-    .filter((r) => r.width >= roughAvg * 0.4)
+    .filter((r) => !isDecimalPoint(mask, width, r, bandHeight))
     .map((r) => r.width)
     .sort((a, b) => a - b);
+  const roughAvg =
+    digitRegions.reduce((s, r) => s + r.width, 0) / (digitRegions.length || 1);
   const refWidth = singleWidths.length
     ? singleWidths[Math.floor(singleWidths.length / 2)]
     : roughAvg;
@@ -705,7 +734,7 @@ function extractNumberFromBand(mask, width, band, debugKey) {
   if (refWidth > 0) {
     const splitRegions = [];
     for (const region of digitRegions) {
-      const isLikelyDecimal = region.width < roughAvg * 0.4;
+      const isLikelyDecimal = isDecimalPoint(mask, width, region, bandHeight);
       const parts = isLikelyDecimal
         ? 1
         : Math.max(1, Math.round(region.width / refWidth));
@@ -726,12 +755,10 @@ function extractNumberFromBand(mask, width, band, debugKey) {
 
   // Ricostruzione stringa numerica
   let numberStr = "";
-  const avgWidth =
-    digitRegions.reduce((s, r) => s + r.width, 0) / (digitRegions.length || 1);
 
   for (const region of digitRegions) {
-    if (region.width < avgWidth * 0.4) {
-      numberStr += "."; // probabile punto decimale
+    if (isDecimalPoint(mask, width, region, bandHeight)) {
+      numberStr += "."; // punto decimale: pixel confinati in basso
     } else {
       numberStr += recognizeDigitGrid(mask, width, region);
     }
@@ -818,21 +845,13 @@ function recognizeDigitGrid(mask, maskWidth, region) {
   // Soglia al 40% (tolleranza aumentata rispetto al 50% originale)
   if (matchQuality < 0.4) return "?";
 
-  // Scambio 1↔4: su questo display (font/soglia attuali) il pattern-matching
-  // a griglia confonde questi due sistematicamente E IN MODO INVERTITO — un
-  // vero "1" viene sempre etichettato "4" (rapporto larghezza/altezza ~0.46)
-  // e un vero "4" viene sempre etichettato "1" (~0.61), confermato su più
-  // scatti/ritagli diversi. Non è un'euristica sulla forma: è la correzione
-  // diretta di uno scambio osservato costantemente, quindi invertiamo le due
-  // etichette invece di provare a indovinare da quale forma provengano.
-  if (bestDigit === "1") {
-    if (OCR._debugOverrides) OCR._debugOverrides.push("1→4");
-    return "4";
-  }
-  if (bestDigit === "4") {
-    if (OCR._debugOverrides) OCR._debugOverrides.push("4→1");
-    return "1";
-  }
+  // NB: qui esisteva uno scambio 1↔4 incondizionato, tarato su un unico
+  // scatto/analizzatore. Rimosso: su un display diverso (font diverso) ha
+  // trasformato un "2" letto correttamente come "1" in un "4" ancora più
+  // sbagliato — la confusione tra cifre cambia da un modello di
+  // analizzatore all'altro e non si può correggere con una regola fissa.
+  // Meglio il risultato grezzo del pattern-matching, corretto a mano quando
+  // serve con i campi rapidi qui sotto.
 
   return bestDigit;
 }
