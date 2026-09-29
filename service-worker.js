@@ -1,4 +1,4 @@
-const CACHE_NAME = 'blending-station-v41';
+const CACHE_NAME = 'blending-station-v42';
 const ASSETS = [
   './',
   './index.html',
