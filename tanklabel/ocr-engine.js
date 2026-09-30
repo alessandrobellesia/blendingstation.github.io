@@ -180,9 +180,102 @@ function onThresholdChange(value) {
  * RIQUADRO DI RITAGLIO (crop box) — trascinabile e ridimensionabile
  * ========================================================= */
 
-/** Inizializza/riposiziona il riquadro di ritaglio con un default centrato
- * sulla foto appena caricata, e collega i gestori di trascinamento/resize
- * (una sola volta). */
+/** Prova a individuare da sola la zona del display con i numeri accesi,
+ * analizzando la foto intera a bassa risoluzione (stessa soglia luce dello
+ * slider) e trovando il riquadro che contiene i pixel ambra/luminosi.
+ * Ritorna un rettangolo in percentuale (0-1) rispetto alla foto, o null se
+ * non trova nulla di affidabile (es. foto troppo scura/riflettente). */
+function autoDetectCropRect(img) {
+  try {
+    const natW = img.naturalWidth,
+      natH = img.naturalHeight;
+    if (!natW || !natH) return null;
+
+    // Analisi a bassa risoluzione: basta per trovare la zona, ed è veloce.
+    const maxDim = 500;
+    const scale = Math.min(1, maxDim / Math.max(natW, natH));
+    const w = Math.max(1, Math.round(natW * scale));
+    const h = Math.max(1, Math.round(natH * scale));
+
+    const tmpCanvas = document.createElement("canvas");
+    tmpCanvas.width = w;
+    tmpCanvas.height = h;
+    const tctx = tmpCanvas.getContext("2d");
+    tctx.drawImage(img, 0, 0, w, h);
+
+    const threshold = parseInt(
+      document.getElementById("thresholdSlider")?.value ?? 220,
+    );
+    const imageData = tctx.getImageData(0, 0, w, h);
+    const { mask, count } = extractLightPixels(imageData, threshold);
+
+    // Troppo pochi pixel accesi: non è un rilevamento affidabile.
+    if (count < w * h * 0.005) return null;
+
+    const rowDensity = new Array(h).fill(0);
+    const colDensity = new Array(w).fill(0);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (mask[y * w + x]) {
+          rowDensity[y]++;
+          colDensity[x]++;
+        }
+      }
+    }
+
+    const maxRow = Math.max(...rowDensity);
+    const maxCol = Math.max(...colDensity);
+    if (maxRow === 0 || maxCol === 0) return null;
+
+    const rowThresh = maxRow * 0.08;
+    const colThresh = maxCol * 0.08;
+
+    let top = -1,
+      bottom = -1,
+      left = -1,
+      right = -1;
+    for (let y = 0; y < h; y++) {
+      if (rowDensity[y] > rowThresh) {
+        if (top === -1) top = y;
+        bottom = y;
+      }
+    }
+    for (let x = 0; x < w; x++) {
+      if (colDensity[x] > colThresh) {
+        if (left === -1) left = x;
+        right = x;
+      }
+    }
+    if (top === -1 || left === -1) return null;
+
+    // Margine di sicurezza attorno alla zona rilevata, per non tagliare i
+    // bordi delle cifre (più margine in verticale: le cifre alte e strette
+    // come "1" hanno una densità per riga bassa vicino a inizio/fine).
+    const boxW = right - left;
+    const boxH = bottom - top;
+    const padX = Math.max(4, boxW * 0.1);
+    const padY = Math.max(4, boxH * 0.2);
+
+    left = Math.max(0, left - padX);
+    right = Math.min(w, right + padX);
+    top = Math.max(0, top - padY);
+    bottom = Math.min(h, bottom + padY);
+
+    return {
+      xPct: left / w,
+      yPct: top / h,
+      wPct: (right - left) / w,
+      hPct: (bottom - top) / h,
+    };
+  } catch (err) {
+    return null;
+  }
+}
+
+/** Inizializza/riposiziona il riquadro di ritaglio: prova prima a
+ * posizionarlo da sola sui numeri accesi (autoDetectCropRect), e solo se
+ * non trova nulla di affidabile usa un default centrato. Collega poi i
+ * gestori di trascinamento/resize (una sola volta). */
 function initCropBox() {
   const wrap = document.getElementById("photoWrap");
   const box = document.getElementById("cropBox");
@@ -190,13 +283,23 @@ function initCropBox() {
 
   box.style.display = "block";
 
-  // Rettangolo di default: centrato, 90% larghezza, 35% altezza del display
   const ww = wrap.clientWidth;
   const wh = img.clientHeight || wrap.clientHeight;
-  const w = ww * 0.9;
-  const h = Math.max(50, wh * 0.35);
-  const x = (ww - w) / 2;
-  const y = (wh - h) / 2;
+
+  const detected = autoDetectCropRect(img);
+  let x, y, w, h;
+  if (detected) {
+    w = ww * detected.wPct;
+    h = wh * detected.hPct;
+    x = ww * detected.xPct;
+    y = wh * detected.yPct;
+  } else {
+    // Rettangolo di default: centrato, 90% larghezza, 35% altezza del display
+    w = ww * 0.9;
+    h = Math.max(50, wh * 0.35);
+    x = (ww - w) / 2;
+    y = (wh - h) / 2;
+  }
   setCropRect(x, y, w, h);
 
   wireCropHandlers();
