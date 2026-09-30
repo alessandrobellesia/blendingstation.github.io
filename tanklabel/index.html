@@ -439,7 +439,7 @@
 
   <footer>
     <p style="font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3)">
-      2026 TankLabel - Version 5.47
+      2026 TankLabel - Version 5.48
     </p>
   </footer>
 
@@ -610,6 +610,35 @@
                   border: 1px solid var(--color-border);
                 " />
           </div>
+        </div>
+      </details>
+
+      <!-- Export modelli imparati (per condividerli con lo sviluppatore) -->
+      <details style="margin-bottom: 12px">
+        <summary style="
+              cursor: pointer;
+              color: var(--color-text-muted);
+              font-size: 0.85rem;
+            ">
+          🧠 Modelli imparati da questo telefono
+        </summary>
+        <div style="margin-top: 10px; padding: 10px; background: rgba(0, 0, 0, 0.1); border-radius: 8px;">
+          <button type="button" class="btn btn-secondary" onclick="exportLearnedTemplates()" style="width: 100%; padding: 10px; font-size: 0.85rem;">
+            <i class="fas fa-copy"></i> Copia modelli imparati
+          </button>
+          <p id="exportLearnedStatus" style="font-size: 0.72rem; color: var(--color-text-muted); margin: 8px 0 0 0;"></p>
+          <textarea id="exportLearnedText" readonly style="
+                display: none;
+                width: 100%;
+                margin-top: 8px;
+                height: 70px;
+                font-family: monospace;
+                font-size: 0.65rem;
+                border-radius: 6px;
+                border: 1px solid var(--color-border);
+                padding: 6px;
+                box-sizing: border-box;
+              "></textarea>
         </div>
       </details>
 
