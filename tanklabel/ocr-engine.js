@@ -926,6 +926,55 @@ function saveLearnedTemplates(templates) {
   }
 }
 
+/** Copia (o mostra, se il copia-incolla non è disponibile) i modelli
+ * imparati su QUESTO telefono, come testo da incollare in chat. Serve per
+ * portare l'apprendimento di un dispositivo dentro ai template statici
+ * dell'app (digit-templates.js), così tutti partono da una base migliore
+ * invece di dover riaddestrare l'app da zero ognuno sul proprio telefono. */
+function exportLearnedTemplates() {
+  const templates = loadLearnedTemplates();
+  const count = Object.values(templates).reduce(
+    (s, arr) => s + (Array.isArray(arr) ? arr.length : 0),
+    0,
+  );
+  const statusEl = document.getElementById("exportLearnedStatus");
+
+  if (count === 0) {
+    if (statusEl) {
+      statusEl.textContent = "Nessun modello ancora imparato su questo telefono — usa lo scan e conferma qualche lettura prima.";
+    }
+    return;
+  }
+
+  const json = JSON.stringify(templates, null, 0);
+
+  const showFallback = () => {
+    const ta = document.getElementById("exportLearnedText");
+    if (ta) {
+      ta.style.display = "block";
+      ta.value = json;
+      ta.focus();
+      ta.select();
+    }
+    if (statusEl) {
+      statusEl.textContent = `${count} forme pronte qui sotto: seleziona tutto (già selezionato) e copia, poi incollalo in chat.`;
+    }
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard
+      .writeText(json)
+      .then(() => {
+        if (statusEl) {
+          statusEl.textContent = `✅ Copiati ${count} modelli imparati negli appunti — incollali in chat.`;
+        }
+      })
+      .catch(showFallback);
+  } else {
+    showFallback();
+  }
+}
+
 /** Registra la forma reale (griglia) di una cifra confermata dall'utente
  * come nuova cifra "0"-"9" — usata da confirmScanValues() quando l'utente
  * accetta o corregge una lettura. */
