@@ -91,7 +91,7 @@ function openOcrModal() {
   document.getElementById("debugPanel").style.display = "none";
   document.getElementById("maskPreviewWrap").style.display = "none";
   document.getElementById("scanInstructions").textContent =
-    "Tocca \"Scatta Foto\" e inquadra il display dell'analizzatore";
+    "Tocca \"Scatta Foto\". Se il display riflette, scatta leggermente in diagonale (non dritto davanti) per non farci vedere il riflesso del telefono.";
 
   // Reset foto precedente (se l'utente riapre la modale dopo una scansione)
   const img = document.getElementById("capturedPhotoImg");
@@ -522,8 +522,14 @@ function extractLightPixels(imageData, threshold) {
       b = data[i + 2];
     const luma = 0.299 * r + 0.587 * g + 0.114 * b;
     const isYellowAmber = r > 140 && g > 90 && b < 130 && r > b * 1.3;
+    // Il riflesso di un telefono/luce sul vetro del display è quasi bianco
+    // puro (r≈g≈b), mentre le cifre vere del display sono giallo/ambra
+    // (r ben più alto di b). Anche sulla via "solo luminosità" scartiamo i
+    // pixel troppo neutri, così un riflesso molto luminoso non si mescola
+    // alle cifre reali.
+    const warmEnough = r - b > 15;
 
-    if (luma > threshold || isYellowAmber) {
+    if ((luma > threshold && warmEnough) || isYellowAmber) {
       mask[i / 4] = 1;
       count++;
     }
@@ -999,7 +1005,11 @@ function matchDigitGrid(grid) {
     bestScore = Infinity;
 
   const learned = loadLearnedTemplates();
-  const allSources = [DIGIT_TEMPLATES, learned];
+  const allSources = [
+    DIGIT_TEMPLATES,
+    ...(typeof LEARNED_TEMPLATES_BASELINE !== "undefined" ? [LEARNED_TEMPLATES_BASELINE] : []),
+    learned,
+  ];
 
   for (const source of allSources) {
     for (const [digit, variants] of Object.entries(source)) {
