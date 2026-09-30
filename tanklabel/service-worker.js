@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tanklabel-v39';
+const CACHE_NAME = 'tanklabel-v41';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
   './ocr-engine.js',
   './export-utils.js',
   './digit-templates.js',
+  './learned-templates-baseline.js',
   './bluetooth-print.js',
   './icon-192.png',
   './icon-512.png',
