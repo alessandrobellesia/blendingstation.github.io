@@ -11,6 +11,9 @@
  *  5. Invio pacchetto TSPL in chunk da 512 byte
  *
  * Dipendenze: html2canvas (CDN), DOM e CONFIG definiti in index.html
+ *
+ * In the Android app the same TSPL packet is sent through the native plugin
+ * instead: see native-print.js.
  */
 
 "use strict";
@@ -237,6 +240,9 @@ function buildTsplPacket(captured) {
  * ========================================================= */
 
 async function printViaBluetooth() {
+  // Android app: the WebView has no Web Bluetooth, print through the native plugin
+  if (isNativeApp()) return printViaThermalPlugin();
+
   const btn = document.getElementById("btPrintBtn");
 
   try {

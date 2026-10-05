@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tanklabel-v42';
+const CACHE_NAME = 'tanklabel-v43';
 const ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const ASSETS = [
   './digit-templates.js',
   './learned-templates-baseline.js',
   './bluetooth-print.js',
+  './native-print.js',
   './icon-192.png',
   './icon-512.png',
   './apple-touch-icon.png',

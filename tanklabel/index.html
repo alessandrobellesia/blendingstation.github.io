@@ -415,20 +415,24 @@
 
       <!-- Action Buttons -->
       <div class="card" style="padding: 20px; display: flex; gap: 10px; flex-wrap: wrap">
-        <button class="btn btn-primary" style="flex: 1; min-width: 80px" onclick="generatePdf()">
+        <!-- .web-only: download, window.print() and the share sheet do not exist in the Android WebView -->
+        <button class="btn btn-primary web-only" style="flex: 1; min-width: 80px" onclick="generatePdf()">
           <i class="fas fa-file-pdf"></i> PDF
         </button>
-        <button class="btn btn-secondary" style="flex: 1; min-width: 80px" onclick="generateImage()">
+        <button class="btn btn-secondary web-only" style="flex: 1; min-width: 80px" onclick="generateImage()">
           <i class="fas fa-image"></i> Immagine
         </button>
-        <button class="btn" style="flex: 1; min-width: 80px; background: #7c3aed; color: white" onclick="printLabel()">
+        <button class="btn web-only" style="flex: 1; min-width: 80px; background: #7c3aed; color: white" onclick="printLabel()">
           <i class="fas fa-print"></i> Stampa
         </button>
-        <button class="btn" style="flex: 1; min-width: 80px; background: #2563eb; color: white" onclick="printLabelWiFi()" id="btnPrintWiFi">
+        <button class="btn web-only" style="flex: 1; min-width: 80px; background: #2563eb; color: white" onclick="printLabelWiFi()" id="btnPrintWiFi">
           <i class="fas fa-wifi"></i> Stampa WiFi
         </button>
         <button class="btn btn-accent" style="flex: 1; min-width: 80px" onclick="printViaBluetooth()" id="btPrintBtn">
           <i class="fab fa-bluetooth-b"></i> Stampa BT
+        </button>
+        <button class="btn btn-secondary native-only" style="flex: 1; min-width: 80px" onclick="changeNativePrinter()">
+          <i class="fas fa-gear"></i> Stampante
         </button>
       </div>
     </div>
@@ -653,6 +657,22 @@
     </div>
   </div>
 
+  <!-- Printer picker: Android app only, filled by native-print.js -->
+  <div id="printerModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 440px">
+      <h3 style="font-size: 1.2rem; margin-bottom: 6px">
+        🖨️ Scegli Stampante
+      </h3>
+      <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 14px">
+        Stampanti Bluetooth associate e stampanti USB collegate. Se la tua non compare, associala dalle impostazioni Bluetooth di Android.
+      </p>
+      <div id="printerList" class="printer-list"></div>
+      <div class="modal-actions">
+        <button id="printerModalCancel" class="btn btn-secondary">Annulla</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Librerie CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -663,6 +683,7 @@
   <script src="ocr-engine.js"></script>
   <script src="export-utils.js"></script>
   <script src="bluetooth-print.js"></script>
+  <script src="native-print.js"></script>
 
   <script>
     "use strict";

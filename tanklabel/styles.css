@@ -573,6 +573,35 @@ input[type="number"]:focus {
   flex-wrap: wrap;
 }
 
+/* --- Android app (Capacitor) ---
+ * native-print.js adds .native-app to <html> when running inside the app.
+ */
+html:not(.native-app) .native-only,
+.native-app .web-only {
+  display: none;
+}
+
+.printer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.printer-option {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.printer-option-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .spinner {
   width: 24px;
   height: 24px;
