@@ -1,5 +1,6 @@
 package io.github.blendingstation.app;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.WebView;
 import androidx.activity.OnBackPressedCallback;
@@ -11,16 +12,16 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // The app is two pages (Blending Station and TankLabel): the system back gesture walks
-        // the WebView history first, and only on the first page falls back to the default
-        // behaviour (leaving the app).
+        // The app is two pages: the system back gesture walks the WebView history from TankLabel,
+        // while Blending Station is the home page and leaves the app even when TankLabel's
+        // "Blending Station" link put TankLabel in the history behind it.
         getOnBackPressedDispatcher().addCallback(
             this,
             new OnBackPressedCallback(true) {
                 @Override
                 public void handleOnBackPressed() {
                     WebView webView = getBridge().getWebView();
-                    if (webView.canGoBack()) {
+                    if (webView.canGoBack() && !isHomePage(webView.getUrl())) {
                         webView.goBack();
                         return;
                     }
@@ -30,5 +31,10 @@ public class MainActivity extends BridgeActivity {
                 }
             }
         );
+    }
+
+    private static boolean isHomePage(String url) {
+        String path = url == null ? null : Uri.parse(url).getPath();
+        return path == null || path.isEmpty() || path.equals("/") || path.equals("/index.html");
     }
 }
