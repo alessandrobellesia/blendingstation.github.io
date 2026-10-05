@@ -33,12 +33,12 @@ TSPL packet used by the web version over:
 
 - **Bluetooth classic (SPP)**: the printer must first be paired in the Android Bluetooth settings.
   Printers that only speak Bluetooth Low Energy are not supported by the plugin.
-- **USB OTG**: Android asks for permission to use the printer the first time it is plugged in.
+- **USB OTG**: Android asks for permission to use the printer at the first print after it is
+  plugged in.
 
 The first print opens a picker with the paired and connected printers; the choice is remembered
 and can be changed with the "Stampante" button.
 
-Downloads, `window.print()` and the share sheet do not exist in the Android WebView, so the PDF,
 ### Patched plugin
 
 `npm install` applies `patches/@devlas+capacitor-thermal-printer+0.8.0.patch` (patch-package).
@@ -47,6 +47,7 @@ before every Bluetooth print, which needs `BLUETOOTH_SCAN` on Android 12+. It al
 runtime permissions on Android 11 and older, where they don't exist and are always denied. The
 patch fixes both. Drop it once a plugin release includes the fix, and update the pinned version.
 
+Downloads, `window.print()` and the share sheet do not exist in the Android WebView, so the PDF,
 Immagine, Stampa and Stampa WiFi buttons are hidden in the app.
 
 ## Icons and splash screen

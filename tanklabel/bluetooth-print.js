@@ -239,8 +239,16 @@ function buildTsplPacket(captured) {
  * ENTRY POINT — chiamato dal pulsante UI
  * ========================================================= */
 
+/**
+ * True inside the Android app (Capacitor), where the WebView has no Web Bluetooth.
+ * Defined here, not in native-print.js, so the website never depends on that file.
+ */
+function isNativeApp() {
+  return !!window.Capacitor?.isNativePlatform?.();
+}
+
 async function printViaBluetooth() {
-  // Android app: the WebView has no Web Bluetooth, print through the native plugin
+  // Android app: print through the native plugin instead
   if (isNativeApp()) return printViaThermalPlugin();
 
   const btn = document.getElementById("btPrintBtn");

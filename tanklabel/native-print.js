@@ -11,7 +11,8 @@
  *
  * The Capacitor bridge exposes window.Capacitor.Plugins.ThermalPrinter on every
  * page served by the app, so no bundler or @capacitor/core import is needed.
- * In the browser this file only defines functions and does nothing.
+ * In the browser this file only defines functions and does nothing; isNativeApp()
+ * lives in bluetooth-print.js, so the website keeps working without this file.
  */
 
 "use strict";
@@ -22,13 +23,12 @@ const NATIVE_PRINT_ERRORS = {
   unavailable: "Bluetooth o USB non disponibile su questo dispositivo.",
   not_found: "Stampante non trovata. Verifica che sia accesa e associata (o collegata via USB).",
   permission_denied: "Permesso negato. Consenti Bluetooth/USB dalle impostazioni dell'app e riprova.",
-  connect_failed: "Connessione non riuscita. Verifica che la stampante sia accesa e vicina.",
+  connect_failed: "Connessione non riuscita. Verifica che il Bluetooth sia attivo e che la stampante sia accesa e vicina.",
   write_failed: "Invio interrotto a metà stampa. Riprova.",
 };
 
-function isNativeApp() {
-  return !!window.Capacitor?.isNativePlatform?.();
-}
+// Errors that choosing another printer can solve; the others are only reported
+const PRINTER_SWITCH_ERRORS = ["not_found", "connect_failed"];
 
 if (isNativeApp()) {
   // Shows the .native-only controls and hides the web-only ones (see styles.css)
@@ -124,7 +124,7 @@ async function listNativePrinters() {
     throw new Error(
       bluetoothError?.code === "permission_denied"
         ? NATIVE_PRINT_ERRORS.permission_denied
-        : "Nessuna stampante trovata.\n\nAssocia la stampante dalle impostazioni Bluetooth di Android (o collegala via USB) e riprova."
+        : "Nessuna stampante trovata.\n\nVerifica che il Bluetooth sia attivo e che la stampante sia associata nelle impostazioni Bluetooth di Android (o collegala via USB), poi riprova."
     );
   }
   return printers;
@@ -168,12 +168,24 @@ function pickNativePrinter(printers, current) {
   });
 }
 
-/** Lists the printers, lets the user pick one and remembers it. Returns null if cancelled. */
-async function chooseNativePrinter() {
-  const printers = await listNativePrinters();
-  const printer = await pickNativePrinter(printers, loadNativePrinter());
-  if (printer) localStorage.setItem(NATIVE_PRINTER_STORAGE_KEY, JSON.stringify(printer));
-  return printer;
+let pendingPrinterChoice = null;
+
+/**
+ * Lists the printers, lets the user pick one and remembers it. Returns null if cancelled.
+ * Concurrent callers ("Stampa BT" and "Stampante" tapped together) share the same picker.
+ */
+function chooseNativePrinter() {
+  if (!pendingPrinterChoice) {
+    pendingPrinterChoice = (async () => {
+      const printers = await listNativePrinters();
+      const printer = await pickNativePrinter(printers, loadNativePrinter());
+      if (printer) localStorage.setItem(NATIVE_PRINTER_STORAGE_KEY, JSON.stringify(printer));
+      return printer;
+    })().finally(() => {
+      pendingPrinterChoice = null;
+    });
+  }
+  return pendingPrinterChoice;
 }
 
 /** "Stampante" button: change the remembered printer without printing. */
@@ -206,7 +218,7 @@ async function printViaThermalPlugin() {
   const btn = document.getElementById("btPrintBtn");
   const idleChildren = [...btn.childNodes];
   let printer = loadNativePrinter();
-  let pickAnother = false;
+  let retryWithAnother = false;
 
   btn.disabled = true;
   try {
@@ -231,20 +243,27 @@ async function printViaThermalPlugin() {
   } catch (err) {
     console.error("[NativePrint] Errore:", err);
     const message = describeNativePrintError(err);
-    if (printer) {
-      pickAnother = confirm(
+    if (printer && PRINTER_SWITCH_ERRORS.includes(err?.code)) {
+      const pickAnother = confirm(
         `Errore stampa su ${printer.name}:\n\n${message}\n\nVuoi scegliere un'altra stampante?`
       );
+      // Still before finally, so the button stays disabled while the picker is up. The
+      // remembered printer is replaced only when the user actually picks another one.
+      if (pickAnother) {
+        setButtonStatus(btn, "fas fa-spinner fa-spin", "Ricerca stampanti...");
+        try {
+          retryWithAnother = !!(await chooseNativePrinter());
+        } catch (chooseErr) {
+          alert(describeNativePrintError(chooseErr));
+        }
+      }
     } else {
-      alert(`Errore stampa:\n\n${message}`);
+      alert(printer ? `Errore stampa su ${printer.name}:\n\n${message}` : `Errore stampa:\n\n${message}`);
     }
   } finally {
     btn.disabled = false;
     btn.replaceChildren(...idleChildren);
   }
 
-  if (pickAnother) {
-    localStorage.removeItem(NATIVE_PRINTER_STORAGE_KEY);
-    return printViaThermalPlugin();
-  }
+  if (retryWithAnother) return printViaThermalPlugin();
 }
