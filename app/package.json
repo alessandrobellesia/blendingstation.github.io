@@ -1,0 +1,21 @@
+{
+  "name": "blendingstation-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Android app (Capacitor) wrapping Blending Station and TankLabel",
+  "type": "module",
+  "scripts": {
+    "copy:web": "node scripts/copy-web.mjs",
+    "sync": "npm run copy:web && cap sync android",
+    "open": "cap open android",
+    "build:debug": "npm run sync && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@devlas/capacitor-thermal-printer": "0.8.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2"
+  }
+}

@@ -792,7 +792,7 @@
                     </div>
 
                     <div class="setting-item">
-                        <a href="https://blendingstation.github.io/tanklabel/" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:space-between; text-decoration:none; color:var(--text);">
+                        <a href="tanklabel/index.html" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:space-between; text-decoration:none; color:var(--text);">
                             <span style="font-size:0.82em; font-weight:700; color:#64748b;"><i class="fa-solid fa-tag" style="color:var(--accent); margin-right:6px;"></i><span data-i18n="ui_tanklabel_link">Crea Etichetta (TankLabel)</span></span>
                             <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75em; color:#64748b;"></i>
                         </a>
@@ -1231,7 +1231,7 @@
 
         <!-- 7. Link TankLabel -->
         <div class="setting-item">
-            <a href="https://blendingstation.github.io/tanklabel/" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:space-between; text-decoration:none; color:var(--text);">
+            <a href="tanklabel/index.html" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:space-between; text-decoration:none; color:var(--text);">
                 <span style="font-size:0.78em; font-weight:700; color:#64748b;"><i class="fa-solid fa-tag" style="color:var(--accent); margin-right:6px;"></i><span data-i18n="ui_tanklabel_link">Crea Etichetta (TankLabel)</span></span>
                 <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.7em; color:#64748b;"></i>
             </a>
@@ -3969,7 +3969,8 @@ function mobileNav(tab) {
     </div>
 
   <script>
-    if ('serviceWorker' in navigator) {
+    // Not in the Android app: its files ship inside the APK and are served locally
+    if ('serviceWorker' in navigator && !window.Capacitor?.isNativePlatform?.()) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js')
           .then(reg => {

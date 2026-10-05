@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Blending Station</string>
+    <string name="title_activity_main">Blending Station</string>
+    <string name="package_name">io.github.blendingstation.app</string>
+    <string name="custom_url_scheme">io.github.blendingstation.app</string>
+</resources>

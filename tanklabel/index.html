@@ -162,7 +162,7 @@
           <h1>TankLabel</h1>
           <p>Generatore Etichette Mix &amp; Trimix</p>
         </div>
-        <a href="https://blendingstation.github.io/" class="back-link" aria-label="Torna a Blending Station">
+        <a href="../index.html" class="back-link" aria-label="Torna a Blending Station">
           <i class="fas fa-arrow-left"></i> <span>Blending Station</span>
         </a>
       </div>
@@ -1220,7 +1220,8 @@
   </script>
 
   <script>
-    if ('serviceWorker' in navigator) {
+    // Not in the Android app: its files ship inside the APK and are served locally
+    if ('serviceWorker' in navigator && !isNativeApp()) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js')
           .then(reg => {
