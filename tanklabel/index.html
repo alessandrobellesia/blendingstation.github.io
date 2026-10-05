@@ -415,17 +415,16 @@
 
       <!-- Action Buttons -->
       <div class="card" style="padding: 20px; display: flex; gap: 10px; flex-wrap: wrap">
-        <!-- .web-only: download, window.print() and the share sheet do not exist in the Android WebView -->
-        <button class="btn btn-primary web-only" style="flex: 1; min-width: 80px" onclick="generatePdf()">
+        <button class="btn btn-primary" style="flex: 1; min-width: 80px" onclick="generatePdf()">
           <i class="fas fa-file-pdf"></i> PDF
         </button>
-        <button class="btn btn-secondary web-only" style="flex: 1; min-width: 80px" onclick="generateImage()">
+        <button class="btn btn-secondary" style="flex: 1; min-width: 80px" onclick="generateImage()">
           <i class="fas fa-image"></i> Immagine
         </button>
-        <button class="btn web-only" style="flex: 1; min-width: 80px; background: #7c3aed; color: white" onclick="printLabel()">
+        <button class="btn" style="flex: 1; min-width: 80px; background: #7c3aed; color: white" onclick="printLabel()">
           <i class="fas fa-print"></i> Stampa
         </button>
-        <button class="btn web-only" style="flex: 1; min-width: 80px; background: #2563eb; color: white" onclick="printLabelWiFi()" id="btnPrintWiFi">
+        <button class="btn" style="flex: 1; min-width: 80px; background: #2563eb; color: white" onclick="printLabelWiFi()" id="btnPrintWiFi">
           <i class="fas fa-wifi"></i> Stampa WiFi
         </button>
         <button class="btn btn-accent" style="flex: 1; min-width: 80px" onclick="printViaBluetooth()" id="btPrintBtn">
@@ -676,6 +675,8 @@
   <!-- Librerie CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Android app only: share sheet and print dialog in place of downloads and window.print() -->
+  <script src="../native-app.js"></script>
 
   <!-- Moduli TankLabel (refactoring v4.0) -->
   <script src="digit-templates.js"></script>

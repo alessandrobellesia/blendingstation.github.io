@@ -576,8 +576,7 @@ input[type="number"]:focus {
 /* --- Android app (Capacitor) ---
  * native-print.js adds .native-app to <html> when running inside the app.
  */
-html:not(.native-app) .native-only,
-.native-app .web-only {
+html:not(.native-app) .native-only {
   display: none;
 }
 

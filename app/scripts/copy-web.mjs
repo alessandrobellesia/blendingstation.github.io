@@ -13,6 +13,7 @@ const SITE_ENTRIES = [
   'index.html',
   'manifest.json',
   'service-worker.js',
+  'native-app.js',
   'icon-192.png',
   'icon-512.png',
   'assets',

@@ -7,6 +7,8 @@
  *   - jsPDF (caricato via CDN)
  *   - html2canvas (caricato via CDN)
  *   - DOM e CONFIG definiti in index.html
+ *   - window.NativeApp (../native-app.js), only inside the Android app: share sheet
+ *     and print dialog in place of downloads and window.print()
  */
 
 "use strict";
@@ -29,7 +31,12 @@ async function cleanupCapture() {
  * PDF
  * ========================================================= */
 
-async function generatePdf() {
+/**
+ * Captures the label and returns a jsPDF whose page is exactly the label (rotated when
+ * the "Ruota etichetta 90°" switch is on). Shared by PDF, Stampa WiFi and, in the
+ * Android app, Stampa.
+ */
+async function buildLabelPdf() {
   const element = await prepareCapture();
 
   try {
@@ -66,20 +73,34 @@ async function generatePdf() {
     // orientation "l" (o "p" con altezza<larghezza) jsPDF può scambiare
     // internamente width/height, disallineando la pagina dall'immagine e
     // facendo apparire l'etichetta piccola su una pagina bianca enorme.
-    // Stessa logica già usata (e verificata) in printLabelWiFi().
     const doc = new jsPDF({
       orientation: "p",
       unit: "mm",
       format: [pageW, pageH],
     });
 
-    doc.addImage(imgData, "PNG", 0, 0, pageW, pageH);
-    doc.save(`TankLabel_Label_${Date.now()}.pdf`);
+    // "FAST" = lossless Flate: without it jsPDF embeds the raw pixels (about 9 MB for a
+    // 50x50 mm label instead of about 100 KB)
+    doc.addImage(imgData, "PNG", 0, 0, pageW, pageH, undefined, "FAST");
+    return doc;
+  } finally {
+    cleanupCapture();
+  }
+}
+
+async function generatePdf() {
+  try {
+    const doc = await buildLabelPdf();
+    const fileName = `TankLabel_Label_${Date.now()}.pdf`;
+    if (window.NativeApp) {
+      // Android app: no downloads in the WebView, hand the PDF to the share sheet
+      await NativeApp.shareFile(doc.output("blob"), fileName, "Etichetta TankLabel");
+    } else {
+      doc.save(fileName);
+    }
   } catch (e) {
     console.error("Errore PDF:", e);
     alert("Errore nella generazione del PDF.");
-  } finally {
-    cleanupCapture();
   }
 }
 
@@ -92,6 +113,7 @@ async function generatePdf() {
  * - Desktop: download diretto tramite <a download>
  * - iOS/Mobile: usa navigator.share() per aprire il pannello
  *   di condivisione nativo (Salva su Foto, AirDrop, ecc.)
+ * - Android app: Android share sheet (native-app.js)
  */
 async function generateImage() {
   const element = await prepareCapture();
@@ -129,6 +151,9 @@ async function generateImage() {
           alert("Tieni premuto sull'immagine per salvarla.");
         }
       }
+    } else if (window.NativeApp) {
+      // Android app: no downloads in the WebView, hand the image to the share sheet
+      await NativeApp.shareFile(canvas.toDataURL("image/png"), fileName, "Etichetta TankLabel");
     } else {
       // Desktop / Android: download classico
       const link = document.createElement("a");
@@ -151,6 +176,19 @@ async function generateImage() {
  * ========================================================= */
 
 async function printLabel() {
+  if (window.NativeApp) {
+    // Android app: window.print() does nothing in the WebView, print the label PDF
+    // through the Android print dialog instead
+    try {
+      const doc = await buildLabelPdf();
+      await NativeApp.printPdf(doc.output("blob"), "Etichetta TankLabel");
+    } catch (e) {
+      console.error("Errore stampa:", e);
+      alert("Errore nella stampa dell'etichetta.");
+    }
+    return;
+  }
+
   const widthMm = parseFloat(DOM.inputs.labelWidth.value) || 50;
   const heightMm = parseFloat(DOM.inputs.labelHeight.value) || 50;
   const basePx = parseFloat(DOM.inputs.basePxSize.value) || 16;
@@ -210,44 +248,8 @@ async function printLabelWiFi() {
   const originalHTML = btn ? btn.innerHTML : "";
   if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...'; btn.disabled = true; }
 
-  const element = await prepareCapture();
   try {
-    const canvas = await html2canvas(element, {
-      scale: 4,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    });
-
-    const { jsPDF } = window.jspdf;
-    const widthMm = parseFloat(DOM.inputs.labelWidth.value);
-    const heightMm = parseFloat(DOM.inputs.labelHeight.value);
-    const rotate = localStorage.getItem("labelRotate90") === "1"; // scelta manuale dell'utente (interruttore "Ruota etichetta 90°"), indipendente dalla skin
-
-    let imgData, pageW, pageH;
-    if (rotate) {
-      const rot = document.createElement("canvas");
-      rot.width = canvas.height;
-      rot.height = canvas.width;
-      const rctx = rot.getContext("2d");
-      rctx.translate(rot.width / 2, rot.height / 2);
-      rctx.rotate(90 * Math.PI / 180);
-      rctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
-      imgData = rot.toDataURL("image/png");
-      pageW = heightMm;
-      pageH = widthMm;
-    } else {
-      imgData = canvas.toDataURL("image/png");
-      pageW = widthMm;
-      pageH = heightMm;
-    }
-
-    const doc = new jsPDF({
-      orientation: "p",
-      unit: "mm",
-      format: [pageW, pageH],
-    });
-    doc.addImage(imgData, "PNG", 0, 0, pageW, pageH);
-
+    const doc = await buildLabelPdf();
     const blob = doc.output("blob");
     const file = new File([blob], `TankLabel_${Date.now()}.pdf`, { type: "application/pdf" });
     await navigator.share({ files: [file], title: "Etichetta TankLabel" });
@@ -257,7 +259,6 @@ async function printLabelWiFi() {
       alert("Errore nella generazione della stampa.");
     }
   } finally {
-    cleanupCapture();
     if (btn) { btn.innerHTML = originalHTML; btn.disabled = false; }
   }
 }

@@ -10,6 +10,7 @@ const ASSETS = [
   './learned-templates-baseline.js',
   './bluetooth-print.js',
   './native-print.js',
+  '../native-app.js',
   './icon-192.png',
   './icon-512.png',
   './apple-touch-icon.png',

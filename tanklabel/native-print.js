@@ -31,7 +31,7 @@ const NATIVE_PRINT_ERRORS = {
 const PRINTER_SWITCH_ERRORS = ["not_found", "connect_failed"];
 
 if (isNativeApp()) {
-  // Shows the .native-only controls and hides the web-only ones (see styles.css)
+  // Shows the .native-only controls (see styles.css)
   document.documentElement.classList.add("native-app");
 }
 

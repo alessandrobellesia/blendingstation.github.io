@@ -2,7 +2,8 @@ const CACHE_NAME = 'blending-station-v43';
 const ASSETS = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './native-app.js'
 ];
 
 // Install: cache all assets

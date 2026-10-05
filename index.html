@@ -564,6 +564,8 @@
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Android app only: share sheet and print dialog in place of downloads and window.print() -->
+    <script src="native-app.js"></script>
 <style>html,body{background-color:#0f172a !important;}</style>
 </head>
 <body style="background-color:#0f172a;">
@@ -2230,11 +2232,19 @@
         }).join('\r\n');
 
         var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        var dateStamp = new Date().toLocaleDateString('it-IT').replace(/\//g, '-');
+        var fileName = 'blending_storico_' + dateStamp + '.csv';
+        if (window.NativeApp) {
+            // Android app: no downloads in the WebView, hand the CSV to the share sheet
+            NativeApp.shareFile(blob, fileName).catch(function(err) {
+                alert(curT().al_error_prefix + ' ' + err.message);
+            });
+            return;
+        }
         var url = URL.createObjectURL(blob);
         var link = document.createElement('a');
         link.href = url;
-        var dateStamp = new Date().toLocaleDateString('it-IT').replace(/\//g, '-');
-        link.download = 'blending_storico_' + dateStamp + '.csv';
+        link.download = fileName;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -2473,12 +2483,19 @@
                 w.document.write(parts);
                 w.document.close();
             } else {
-                const link = document.createElement('a');
                 const customer = (document.getElementById('customerName').value || '').replace(/\s+/g, '_');
                 const date = new Date().toLocaleDateString('it-IT').replace(/\//g, '-');
-                link.download = customer ? 'blending_' + customer + '_' + date + '.png' : 'blending_' + date + '.png';
-                link.href = dataUrl;
-                link.click();
+                const fileName = customer ? 'blending_' + customer + '_' + date + '.png' : 'blending_' + date + '.png';
+                if (window.NativeApp) {
+                    // Android app: no downloads in the WebView, hand the image to the share sheet
+                    NativeApp.shareFile(dataUrl, fileName, 'Report Blending')
+                        .catch(err => alert(curT().al_error_prefix + ' ' + err.message));
+                } else {
+                    const link = document.createElement('a');
+                    link.download = fileName;
+                    link.href = dataUrl;
+                    link.click();
+                }
             }
             btn.innerHTML = '<i class="fa-solid fa-image"></i> SCARICA IMMAGINE';
             btn.disabled = false;
@@ -2569,7 +2586,13 @@
             const customer = (document.getElementById('customerName').value || '').replace(/\s+/g, '_');
             const date = new Date().toLocaleDateString('it-IT').replace(/\//g, '-');
             const filename = customer ? 'blending_' + customer + '_' + date + '.pdf' : 'blending_' + date + '.pdf';
-            doc.save(filename);
+            if (window.NativeApp) {
+                // Android app: no downloads in the WebView, hand the PDF to the share sheet
+                NativeApp.shareFile(doc.output('blob'), filename, 'Gas Blender Report')
+                    .catch(err => alert(curT().al_error_prefix + ' ' + err.message));
+            } else {
+                doc.save(filename);
+            }
             btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> SCARICA PDF';
             btn.disabled = false;
         }).catch(err => {
@@ -2616,6 +2639,14 @@
     }
 
     function printReceipt() {
+        if (window.NativeApp) {
+            // Android app: window.open/print do nothing in the WebView, print the PDF report
+            // through the Android print dialog instead
+            _buildReceiptPDF()
+                .then(doc => NativeApp.printPdf(doc.output('blob'), 'Gas Blender Report'))
+                .catch(err => alert(curT().al_error_prefix + ' ' + err.message));
+            return;
+        }
         const receiptText = document.getElementById('receipt').innerText;
         const win = window.open('', '_blank', 'width=400,height=600');
         win.document.write('<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>GAS BLENDER REPORT<\/title><link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@500;700&display=swap" rel="stylesheet"><style>@page{margin:0;size:auto;}*{margin:0;padding:0;box-sizing:border-box;}html,body{background:#fff;}pre{font-family:\'Azeret Mono\',monospace;font-size:20px;white-space:pre;padding:10mm;color:#000;line-height:1.5;}<\/style><\/head><body><pre>' + receiptText + '<\/pre><script>window.onload=function(){setTimeout(function(){window.print();window.close();},400);};<\/script><\/body><\/html>');

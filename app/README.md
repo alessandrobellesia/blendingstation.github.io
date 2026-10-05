@@ -46,9 +46,24 @@ Version 0.8.0 of the plugin asks only for `BLUETOOTH_CONNECT`, but it calls `can
 before every Bluetooth print, which needs `BLUETOOTH_SCAN` on Android 12+. It also asks for those
 runtime permissions on Android 11 and older, where they don't exist and are always denied. The
 patch fixes both. Drop it once a plugin release includes the fix, and update the pinned version.
+Reported upstream in [devlas-cl/capacitor-thermal-printer#1](https://github.com/devlas-cl/capacitor-thermal-printer/issues/1).
 
-Downloads, `window.print()` and the share sheet do not exist in the Android WebView, so the PDF,
-Immagine, Stampa and Stampa WiFi buttons are hidden in the app.
+## Reports, exports and system printing
+
+Downloads, `window.print()` and the Web Share API don't exist in the Android WebView. In the app,
+`native-app.js` (at the repository root, loaded by both pages) fills the gap through
+`@capacitor/filesystem`, `@capacitor/share` and the app's own `PdfPrinterPlugin`:
+
+| Button | In the app |
+|---|---|
+| Blending Station: Scarica PDF, Scarica immagine, CSV export | Android share sheet (save to Files or Drive, send) |
+| Blending Station: Stampa | Android print dialog with the PDF report |
+| Blending Station: Stampa WiFi, Registro, Sequenza | Share sheet, through the `navigator.share` the pages already use |
+| TankLabel: PDF, Immagine, Stampa WiFi | Share sheet |
+| TankLabel: Stampa | Android print dialog with the label PDF |
+
+The print dialog uses the print services installed on the phone (Wi-Fi printers, "Save as PDF").
+In the browser `window.NativeApp` stays undefined and every button keeps its web behaviour.
 
 ## Icons and splash screen
 

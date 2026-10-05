@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerPlugin(PdfPrinterPlugin.class);
         super.onCreate(savedInstanceState);
 
         // The app is two pages: the system back gesture walks the WebView history from TankLabel,
