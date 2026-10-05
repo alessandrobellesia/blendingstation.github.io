@@ -3969,7 +3969,7 @@ function mobileNav(tab) {
     </div>
 
   <script>
-    // Not in the Android app: its files ship inside the APK and are served locally
+    // Not in the Android app: the app's own files ship inside the APK and are served locally
     if ('serviceWorker' in navigator && !window.Capacitor?.isNativePlatform?.()) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js')

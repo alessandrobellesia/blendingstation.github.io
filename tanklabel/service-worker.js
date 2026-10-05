@@ -32,11 +32,14 @@ self.addEventListener('install', event => {
   self.skipWaiting(); // attiva subito senza aspettare che tutte le tab chiudano
 });
 
-// Activate: elimina cache vecchie e prendi controllo immediato
+// Activate: elimina cache vecchie e prendi controllo immediato.
+// Only our own: Blending Station's caches live on the same origin.
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+      Promise.all(keys
+        .filter(k => k.startsWith('tanklabel-') && k !== CACHE_NAME)
+        .map(k => caches.delete(k)))
     )
   );
   self.clients.claim(); // controlla tutte le tab aperte subito
