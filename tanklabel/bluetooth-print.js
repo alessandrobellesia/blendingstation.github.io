@@ -265,12 +265,12 @@ async function printViaBluetooth() {
 
     setTimeout(() => {
       btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-bluetooth-b"></i> Stampa BT';
+      btn.innerHTML = '<i class="fab fa-bluetooth-b"></i> Stampa BT';
     }, 2500);
 
   } catch (err) {
     btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-bluetooth-b"></i> Stampa BT';
+    btn.innerHTML = '<i class="fab fa-bluetooth-b"></i> Stampa BT';
 
     // NotFoundError = utente ha annullato il selettore dispositivi
     if (err.name !== "NotFoundError") {
