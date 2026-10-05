@@ -1,0 +1,78 @@
+diff --git a/node_modules/@devlas/capacitor-thermal-printer/android/src/main/AndroidManifest.xml b/node_modules/@devlas/capacitor-thermal-printer/android/src/main/AndroidManifest.xml
+index b78cf05..2e45852 100644
+--- a/node_modules/@devlas/capacitor-thermal-printer/android/src/main/AndroidManifest.xml
++++ b/node_modules/@devlas/capacitor-thermal-printer/android/src/main/AndroidManifest.xml
+@@ -20,5 +20,9 @@
+     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
++    <!-- cancelDiscovery() before connecting needs it from API 31; never used to derive location -->
++    <uses-permission
++        android:name="android.permission.BLUETOOTH_SCAN"
++        android:usesPermissionFlags="neverForLocation" />
+ 
+ </manifest>
+diff --git a/node_modules/@devlas/capacitor-thermal-printer/android/src/main/java/app/devlas/plugins/thermalprinter/ThermalPrinterPlugin.kt b/node_modules/@devlas/capacitor-thermal-printer/android/src/main/java/app/devlas/plugins/thermalprinter/ThermalPrinterPlugin.kt
+index f00d5fa..2180e16 100644
+--- a/node_modules/@devlas/capacitor-thermal-printer/android/src/main/java/app/devlas/plugins/thermalprinter/ThermalPrinterPlugin.kt
++++ b/node_modules/@devlas/capacitor-thermal-printer/android/src/main/java/app/devlas/plugins/thermalprinter/ThermalPrinterPlugin.kt
+@@ -23,11 +23,22 @@ import java.util.concurrent.Executors
+ @CapacitorPlugin(
+     name = "ThermalPrinter",
+     permissions = [
+-        Permission(alias = "bluetooth", strings = [Manifest.permission.BLUETOOTH_CONNECT])
++        // BLUETOOTH_SCAN too: BluetoothTransport calls cancelDiscovery() before connecting,
++        // which throws a SecurityException on Android 12+ without it.
++        Permission(
++            alias = "bluetooth",
++            strings = [Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN],
++        )
+     ]
+ )
+ class ThermalPrinterPlugin : Plugin() {
+ 
++    // BLUETOOTH_CONNECT/SCAN only exist from Android 12 (API 31): before that SPP is covered by
++    // the install-time BLUETOOTH/BLUETOOTH_ADMIN, and asking for the runtime ones is always denied.
++    private fun hasBluetoothPermission(): Boolean =
++        Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
++            getPermissionState("bluetooth") == PermissionState.GRANTED
++
+     // Una fila por impresora de destino, no una global.
+     //
+     // Cada executor es de un solo hilo, asi que dos trabajos al MISMO destino
+@@ -161,7 +172,7 @@ class ThermalPrinterPlugin : Plugin() {
+         when (call.getString("transport")) {
+             "usb" -> call.resolve(JSObject().put("devices", usb.list()))
+             "bluetooth" -> {
+-                if (getPermissionState("bluetooth") != PermissionState.GRANTED) {
++                if (!hasBluetoothPermission()) {
+                     requestPermissionForAlias("bluetooth", call, "bluetoothListCallback")
+                     return
+                 }
+@@ -173,7 +184,7 @@ class ThermalPrinterPlugin : Plugin() {
+ 
+     @PermissionCallback
+     private fun bluetoothListCallback(call: PluginCall) {
+-        if (getPermissionState("bluetooth") == PermissionState.GRANTED) {
++        if (hasBluetoothPermission()) {
+             resolveBluetoothList(call)
+         } else {
+             call.reject("Permiso Bluetooth denegado", "permission_denied")
+@@ -200,7 +211,7 @@ class ThermalPrinterPlugin : Plugin() {
+                 onError = { code, msg -> call.reject(msg, code) },
+             )
+             "bluetooth" -> {
+-                if (getPermissionState("bluetooth") == PermissionState.GRANTED) {
++                if (hasBluetoothPermission()) {
+                     call.resolve(JSObject().put("granted", true))
+                 } else {
+                     requestPermissionForAlias("bluetooth", call, "bluetoothPermissionCallback")
+@@ -215,7 +226,7 @@ class ThermalPrinterPlugin : Plugin() {
+ 
+     @PermissionCallback
+     private fun bluetoothPermissionCallback(call: PluginCall) {
+-        call.resolve(JSObject().put("granted", getPermissionState("bluetooth") == PermissionState.GRANTED))
++        call.resolve(JSObject().put("granted", hasBluetoothPermission()))
+     }
+ 
+     // ── status ───────────────────────────────────────────────────────────

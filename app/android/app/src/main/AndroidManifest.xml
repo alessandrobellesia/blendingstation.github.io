@@ -33,9 +33,5 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Required by the thermal printer plugin on Android 12+, see BluetoothScanPermissionPlugin.
-         The app never scans to derive the user's location. -->
-    <uses-permission
-        android:name="android.permission.BLUETOOTH_SCAN"
-        android:usesPermissionFlags="neverForLocation" />
+
 </manifest>

@@ -39,6 +39,14 @@ The first print opens a picker with the paired and connected printers; the choic
 and can be changed with the "Stampante" button.
 
 Downloads, `window.print()` and the share sheet do not exist in the Android WebView, so the PDF,
+### Patched plugin
+
+`npm install` applies `patches/@devlas+capacitor-thermal-printer+0.8.0.patch` (patch-package).
+Version 0.8.0 of the plugin asks only for `BLUETOOTH_CONNECT`, but it calls `cancelDiscovery()`
+before every Bluetooth print, which needs `BLUETOOTH_SCAN` on Android 12+. It also asks for those
+runtime permissions on Android 11 and older, where they don't exist and are always denied. The
+patch fixes both. Drop it once a plugin release includes the fix, and update the pinned version.
+
 Immagine, Stampa and Stampa WiFi buttons are hidden in the app.
 
 ## Icons and splash screen

@@ -9,7 +9,6 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        registerPlugin(BluetoothScanPermissionPlugin.class);
         super.onCreate(savedInstanceState);
 
         // The app is two pages (Blending Station and TankLabel): the system back gesture walks

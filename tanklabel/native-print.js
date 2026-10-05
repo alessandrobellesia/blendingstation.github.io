@@ -190,16 +190,11 @@ async function changeNativePrinter() {
  * ========================================================= */
 
 /**
- * The plugin never prompts inside print(): ask first. Bluetooth needs BLUETOOTH_CONNECT,
- * USB needs a per-device grant that Android drops when the cable is unplugged.
- * On Android 12+ Bluetooth printing also needs BLUETOOTH_SCAN, which the plugin never
- * requests: the app asks for it (BluetoothScanPermissionPlugin in the Android project).
+ * The plugin never prompts inside print(): ask first. Bluetooth needs the "Nearby devices"
+ * permissions (Android 12+), USB a per-device grant that Android drops when the cable is unplugged.
  */
 async function ensureNativePrinterPermission(plugin, printer) {
-  let { granted } = await plugin.requestPermission(printerTarget(printer));
-  if (granted && printer.transport === "bluetooth") {
-    ({ granted } = await window.Capacitor.Plugins.BluetoothScanPermission.request());
-  }
+  const { granted } = await plugin.requestPermission(printerTarget(printer));
   if (!granted) {
     const err = new Error(NATIVE_PRINT_ERRORS.permission_denied);
     err.code = "permission_denied";
